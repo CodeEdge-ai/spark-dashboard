@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPARK Studio — Live Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0c0f0e; --surface:#131916; --surface2:#1a2020;
+    --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.12);
+    --emerald:#4ade80; --emerald-dim:#22c55e; --emerald-glow:rgba(74,222,128,.12);
+    --gold:#f0c040; --gold-glow:rgba(240,192,64,.1);
+    --white:#f0f4f2; --muted:#6b8078; --muted2:#4a5e58; --red:#f87171;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--white);min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.35}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px 60px}
+
+  /* LOADING */
+  #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:500}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;color:var(--white);letter-spacing:.02em}
+  .logo em{font-style:italic;color:var(--emerald)}
+  .load-msg{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .spinner{width:30px;height:30px;border:2px solid var(--border2);border-top-color:var(--emerald);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ERROR */
+  #error{display:none;position:fixed;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:40px;text-align:center;z-index:500}
+  .err-title{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--red)}
+  .err-desc{font-size:13px;color:var(--muted);max-width:420px;line-height:1.7}
+  .retry{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 24px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;color:var(--white);cursor:pointer;transition:border-color .2s,color .2s}
+  .retry:hover{border-color:var(--emerald);color:var(--emerald)}
+
+  /* STATUS BAR */
+  .status-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px}
+  .sdot-wrap{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted2)}
+  .dot.live{background:var(--emerald);box-shadow:0 0 6px var(--emerald);animation:pulse 2.5s infinite}
+  .dot.loading{background:var(--gold);animation:pulse 1s infinite}
+  .dot.error{background:var(--red)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .rfbtn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 14px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s}
+  .rfbtn:hover{color:var(--white);border-color:var(--emerald)}
+
+  /* HEADER */
+  .header{padding:20px 0 26px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--border);margin-bottom:30px;animation:fadeUp .5s ease both}
+  .eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--emerald);margin-bottom:4px}
+  .brand{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,5vw,50px);font-weight:300;color:var(--white);line-height:1;letter-spacing:.02em}
+  .brand em{font-style:italic;color:var(--emerald)}
+  .sub{font-size:13px;color:var(--muted);margin-top:5px;font-weight:300}
+  .msel-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+  .msel{display:flex;flex-wrap:wrap;justify-content:flex-end;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:4px;gap:2px}
+  .mbtn{padding:7px 16px;border-radius:100px;border:none;background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .mbtn.active{background:var(--emerald);color:#0c0f0e;font-weight:600}
+  .mhint{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace}
+
+  /* CARDS */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 20px;position:relative;overflow:hidden;transition:border-color .25s,transform .2s;animation:fadeUp .5s ease both}
+  .card:hover{border-color:var(--border2);transform:translateY(-2px)}
+  .cglow{position:absolute;inset:0;border-radius:16px;opacity:0;transition:opacity .3s;pointer-events:none}
+  .card:hover .cglow{opacity:1}
+  .cicon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:14px}
+  .clabel{font-size:10px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .cval{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,2.8vw,30px);font-weight:600;color:var(--white);line-height:1}
+  .csub{font-size:11px;color:var(--muted);margin-top:6px;font-weight:300}
+
+  /* PANELS */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeUp .6s ease both}
+  .ph{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .pt{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--white);letter-spacing:.02em}
+  .pb{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:3px 9px;border-radius:100px}
+  .pbody{padding:16px 20px}
+  .full{grid-column:1/-1}
+
+  /* BARS */
+  .pr{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+  .pr:last-child{margin-bottom:0}
+  .av{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--emerald);flex-shrink:0;font-family:'DM Mono',monospace}
+  .pi{flex:1;min-width:0}
+  .pnr{font-size:13px;font-weight:500;color:var(--white);margin-bottom:5px;display:flex;align-items:center;gap:7px}
+  .top-tag{font-size:9px;background:var(--emerald-glow);color:var(--emerald);border:1px solid rgba(74,222,128,.2);padding:1px 6px;border-radius:100px;font-family:'DM Mono',monospace}
+  .br{display:flex;align-items:center;gap:8px}
+  .bt{flex:1;height:4px;background:var(--surface2);border-radius:100px;overflow:hidden}
+  .bf{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--emerald-dim),var(--emerald));width:0;transition:width 1s cubic-bezier(.4,0,.2,1)}
+  .pamt{font-family:'DM Mono',monospace;font-size:12px;color:var(--white);font-weight:500;min-width:72px;text-align:right}
+
+  /* PAYOUT ROWS */
+  .por{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px}
+  .por:last-child{border-bottom:none}
+  .pon{flex:1;font-size:13px;font-weight:500;color:var(--white)}
+  .pot{font-size:11px;color:var(--muted);margin-top:1px}
+  .poa{font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
+  .poa.owed{color:var(--gold)}
+  .poa.paid{color:var(--emerald)}
+  .poa.clear{color:var(--muted2)}
+  .pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;font-family:'DM Mono',monospace;min-width:52px;text-align:center;letter-spacing:.04em}
+  .pill.owed{background:rgba(240,192,64,.12);color:var(--gold)}
+  .pill.paid{background:rgba(74,222,128,.12);color:var(--emerald)}
+  .pill.clear{background:rgba(107,128,120,.1);color:var(--muted2)}
+
+  /* MONTHLY TABLE */
+  .mtbl{width:100%;border-collapse:collapse}
+  .mtbl th{text-align:left;padding:10px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500}
+  .mtbl td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px}
+  .mtbl tr:last-child td{border-bottom:none}
+  .mtbl tr.ar td{background:rgba(74,222,128,.04)}
+  .num{font-family:'DM Mono',monospace;font-size:12px}
+  .em{color:var(--emerald)} .go{color:var(--gold)}
+
+  /* HISTORY */
+  .hor{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:12px;font-size:13px}
+  .hor:last-child{border-bottom:none}
+  .hav{width:28px;height:28px;border-radius:50%;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--emerald);flex-shrink:0;font-family:'DM Mono',monospace}
+  .hn{flex:1;font-weight:500}
+  .hm{font-size:11px;color:var(--muted)}
+  .ha{font-family:'DM Mono',monospace;font-size:12px;color:var(--emerald);font-weight:500}
+  .hd{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2)}
+  .empty{text-align:center;padding:24px 0;font-size:13px;color:var(--muted2)}
+
+  /* ALL-TIME */
+  .at{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:grid;grid-template-columns:repeat(4,1fr);animation:fadeUp .7s ease both;position:relative;overflow:hidden;margin-top:14px}
+  .at::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(74,222,128,.05) 0%,transparent 70%);pointer-events:none}
+  .ati{padding:0 22px;border-right:1px solid var(--border)}
+  .ati:first-child{padding-left:0}
+  .ati:last-child{border-right:none}
+  .atl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .atv{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--emerald);line-height:1}
+  .ats{font-size:11px;color:var(--muted);margin-top:5px}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.09s}
+  .card:nth-child(3){animation-delay:.14s}.card:nth-child(4){animation-delay:.19s}
+
+  @media(max-width:720px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:1fr}
+    .full{grid-column:1}
+    .at{grid-template-columns:repeat(2,1fr);gap:18px}
+    .ati{border-right:none;padding:0;padding-bottom:16px;border-bottom:1px solid var(--border)}
+    .ati:nth-child(even),.ati:last-child{border-bottom:none}
+    .header{flex-direction:column;align-items:flex-start;gap:18px}
+    .msel-wrap{align-items:flex-start;width:100%}
+    .msel{border-radius:12px;width:100%}
+    .mbtn{flex:1;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="logo">SPARK <em>Studio</em></div>
+  <div class="spinner"></div>
+  <div class="load-msg" id="lmsg">Connecting to your spreadsheet...</div>
+</div>
+
+<!-- ERROR -->
+<div id="error">
+  <div style="font-size:36px">⚠️</div>
+  <div class="err-title">Could not load data</div>
+  <div class="err-desc" id="errdesc">Unable to reach your Google Sheet. Check your internet connection and that the sheets are still published, then try again.</div>
+  <button class="retry" onclick="init()">↻ Try Again</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="wrap" id="dash" style="display:none">
+
+  <div class="status-bar">
+    <div class="sdot-wrap"><div class="dot" id="sdot"></div><span id="stxt">Connecting...</span></div>
+    <button class="rfbtn" onclick="init()">↻ Refresh now</button>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="eyebrow">Live Studio Analytics</div>
+      <div class="brand">SPARK <em>Studio</em></div>
+      <div class="sub">Wellness Management Dashboard · Auto-updates every 5 minutes</div>
+    </div>
+    <div class="msel-wrap">
+      <div class="msel" id="msel"></div>
+      <div class="mhint">tap a month to filter all data</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="cglow" style="background:var(--emerald-glow)"></div>
+      <div class="cicon" style="background:var(--emerald-glow)">💰</div>
+      <div class="clabel">Total Revenue</div>
+      <div class="cval" id="c1" style="color:var(--emerald)">—</div>
+      <div class="csub">selected month</div>
+    </div>
+    <div class="card">
+      <div class="cicon" style="background:rgba(96,165,250,.08)">🧘</div>
+      <div class="clabel">Sessions Held</div>
+      <div class="cval" id="c2">—</div>
+      <div class="csub">classes this month</div>
+    </div>
+    <div class="card">
+      <div class="cicon" style="background:var(--emerald-glow)">🏛️</div>
+      <div class="clabel">Studio Income</div>
+      <div class="cval" id="c3">—</div>
+      <div class="csub">after practitioner share</div>
+    </div>
+    <div class="card">
+      <div class="cglow" style="background:var(--gold-glow)"></div>
+      <div class="cicon" style="background:var(--gold-glow)">📤</div>
+      <div class="clabel">Outstanding Payouts</div>
+      <div class="cval" id="c4" style="color:var(--gold)">—</div>
+      <div class="csub">still owed this month</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="ph"><div class="pt">Revenue by Practitioner</div><div class="pb">All Time</div></div>
+      <div class="pbody" id="bars"></div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="pt">Payout Status</div><div class="pb" id="pobadge">—</div></div>
+      <div class="pbody" id="polist"></div>
+    </div>
+
+    <div class="panel full">
+      <div class="ph"><div class="pt">Monthly Breakdown</div><div class="pb" id="mbadge">—</div></div>
+      <div style="overflow-x:auto">
+        <table class="mtbl">
+          <thead><tr>
+            <th>Month</th><th>Total Revenue</th><th>Sessions</th>
+            <th>Studio Income</th><th>Payouts Owed</th><th>Avg / Session</th>
+          </tr></thead>
+          <tbody id="mtbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel full">
+      <div class="ph"><div class="pt">Payout History</div><div class="pb" id="hbadge">payment log</div></div>
+      <div class="pbody" id="hlist"></div>
+    </div>
+
+  </div>
+
+  <div class="at">
+    <div class="ati">
+      <div class="atl">All-Time Revenue</div>
+      <div class="atv" id="at1">—</div>
+      <div class="ats" id="at1s">KES total</div>
+    </div>
+    <div class="ati">
+      <div class="atl">All-Time Sessions</div>
+      <div class="atv" id="at2" style="color:var(--white)">—</div>
+      <div class="ats">sessions completed</div>
+    </div>
+    <div class="ati">
+      <div class="atl">Top Earner</div>
+      <div class="atv" id="at3" style="font-size:26px;padding-top:6px">—</div>
+      <div class="ats" id="at3s">all-time revenue</div>
+    </div>
+    <div class="ati">
+      <div class="atl">Active Practitioners</div>
+      <div class="atv" id="at4" style="color:var(--white)">—</div>
+      <div class="ats">in the system</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── LIVE DATA SOURCES (all three sheets hardcoded) ───────────────────────
+const URLS = {
+  sessions:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vR7vqT3yeUecPwtwWHBXZTLkrvqnq7MTBDFRbtfVRcHjSKCLxZeMJekvV5mRb8i72dWDf3D55SfQmAa/pub?gid=0&single=true&output=csv',
+  practitioners: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR7vqT3yeUecPwtwWHBXZTLkrvqnq7MTBDFRbtfVRcHjSKCLxZeMJekvV5mRb8i72dWDf3D55SfQmAa/pub?gid=135420663&single=true&output=csv',
+  history:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vR7vqT3yeUecPwtwWHBXZTLkrvqnq7MTBDFRbtfVRcHjSKCLxZeMJekvV5mRb8i72dWDf3D55SfQmAa/pub?gid=1394578292&single=true&output=csv'
+};
+const PROXY = 'https://corsproxy.io/?';
+const REFRESH_MS = 5 * 60 * 1000;
+
+let sessions=[], practitioners=[], history=[], months=[], currentMonth=null, timer=null;
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const headers = splitLine(lines[0]).map(h => h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line => {
+    const cols = splitLine(line);
+    const obj = {};
+    headers.forEach((h,i) => { obj[h] = (cols[i]||'').trim().replace(/^"|"$/g,''); });
+    return obj;
+  }).filter(row => Object.values(row).some(v => v.trim() !== ''));
+}
+
+function splitLine(line) {
+  const res=[]; let cur=''; let inQ=false;
+  for (const ch of line) {
+    if (ch==='"') inQ=!inQ;
+    else if (ch===',' && !inQ) { res.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  res.push(cur); return res;
+}
+
+// ─── FIELD + NUMBER HELPERS ───────────────────────────────────────────────
+function f(row, ...keys) {
+  for (const k of keys) {
+    if (row[k] !== undefined && row[k].trim() !== '') return row[k].trim();
+    const found = Object.keys(row).find(rk => rk.trim().toLowerCase() === k.toLowerCase());
+    if (found && row[found].trim() !== '') return row[found].trim();
+  }
+  return '';
+}
+function n(val) { const v = parseFloat((val||'').replace(/[^0-9.-]/g,'')); return isNaN(v)?0:v; }
+function fmt(v) { return 'KES ' + Math.round(v).toLocaleString(); }
+function ini(name) { return (name||'??').slice(0,2).toUpperCase(); }
+
+// ─── PAYOUT HISTORY LOOKUP ────────────────────────────────────────────────
+// Returns true if a practitioner's payout for a given month has been recorded as settled
+function isPaid(practitioner, month) {
+  return history.some(r => {
+    const p = f(r,'Practitioner','practitioner');
+    const m = f(r,'Month Covered','Month Covered','month covered','Month','month');
+    return p.toLowerCase().trim() === practitioner.toLowerCase().trim()
+        && m.toLowerCase().trim() === month.toLowerCase().trim();
+  });
+}
+
+// ─── FETCH ────────────────────────────────────────────────────────────────
+async function fetchCSV(url) {
+  const res = await fetch(PROXY + encodeURIComponent(url));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+async function init() {
+  setStatus('loading','Refreshing data...');
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('error').style.display   = 'none';
+  document.getElementById('dash').style.display    = 'none';
+  document.getElementById('lmsg').textContent       = 'Connecting to your spreadsheet...';
+
+  try {
+    const [st, pt, ht] = await Promise.all([
+      fetchCSV(URLS.sessions),
+      fetchCSV(URLS.practitioners),
+      fetchCSV(URLS.history)
+    ]);
+
+    // Parse sessions — filter out empty rows and 1899 date artefacts
+    sessions = parseCSV(st).filter(r => {
+      const m = f(r,'Month','month');
+      return f(r,'Date','date') && m && !m.includes('1899') && m.trim() !== '';
+    });
+
+    practitioners = parseCSV(pt).filter(r => f(r,'Practitioner Name','Name','name') !== '');
+
+    // Parse history — filter out rows with no practitioner name
+    history = parseCSV(ht).filter(r => f(r,'Practitioner','practitioner') !== '');
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dash').style.display    = 'block';
+
+    buildMonths();
+    render();
+    setStatus('live', `Live · Updated ${new Date().toLocaleTimeString()}`);
+
+    // Self-updating timer — picks up new months automatically
+    if (timer) clearInterval(timer);
+    timer = setInterval(init, REFRESH_MS);
+
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'flex';
+    document.getElementById('errdesc').textContent   =
+      `Unable to reach your Google Sheet (${e.message}). Check your internet connection and confirm the sheets are still published.`;
+    setStatus('error','Connection failed');
+  }
+}
+
+// ─── BUILD MONTH SELECTOR ─────────────────────────────────────────────────
+// Dynamically reads all months from live data — new months appear automatically
+function buildMonths() {
+  const set = new Set();
+  sessions.forEach(r => {
+    const m = f(r,'Month','month');
+    if (m && !m.includes('1899') && m.trim() !== '') set.add(m.trim());
+  });
+  months = Array.from(set).sort((a,b) => new Date('1 '+a) - new Date('1 '+b));
+
+  // Default to the most recent month
+  if (!currentMonth || !months.includes(currentMonth)) {
+    currentMonth = months[months.length - 1];
+  }
+
+  document.getElementById('msel').innerHTML = months.map(m =>
+    `<button class="mbtn ${m===currentMonth?'active':''}" onclick="selectMonth('${m}')">${m}</button>`
+  ).join('');
+}
+
+function selectMonth(m) {
+  currentMonth = m;
+  document.querySelectorAll('.mbtn').forEach(b => b.classList.toggle('active', b.textContent===m));
+  renderMonth();
+  renderMonthlyTable();
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────
+function render() { renderMonth(); renderAllTime(); renderMonthlyTable(); renderHistory(); }
+
+function renderMonth() {
+  const rows = sessions.filter(r => f(r,'Month','month').trim() === currentMonth);
+
+  const totalRev  = rows.reduce((s,r) => s + n(f(r,'Total Rev.','Total Rev','Total Revenue')), 0);
+  const studioInc = rows.reduce((s,r) => s + n(f(r,'Studio Recv.','Studio Recv','Studio Received')), 0);
+
+  // Build this-month practitioner map
+  const mMap = {};
+  rows.forEach(r => {
+    const name = f(r,'Practitioner','practitioner'); if(!name) return;
+    if(!mMap[name]) mMap[name] = {payout:0, sessions:0, type:''};
+    mMap[name].payout   += n(f(r,'Pract. Payout','Practitioner Payout','Pract Payout'));
+    mMap[name].sessions += 1;
+    if(!mMap[name].type) mMap[name].type = f(r,'Type','Session Type','type');
+  });
+
+  // Outstanding = sum of payouts where NOT yet marked paid in history
+  let outstanding = 0;
+  Object.entries(mMap).forEach(([name, p]) => {
+    if (!isPaid(name, currentMonth)) outstanding += p.payout;
+  });
+
+  document.getElementById('c1').textContent = fmt(totalRev);
+  document.getElementById('c2').textContent = rows.length;
+  document.getElementById('c3').textContent = fmt(studioInc);
+  document.getElementById('c4').textContent = fmt(outstanding);
+  document.getElementById('pobadge').textContent = currentMonth;
+
+  // All-time revenue map for bar sizing
+  const atRev = {};
+  sessions.forEach(r => {
+    const name = f(r,'Practitioner','practitioner'); if(!name) return;
+    atRev[name] = (atRev[name]||0) + n(f(r,'Total Rev.','Total Rev','Total Revenue'));
+  });
+
+  const sorted = Object.entries(atRev).sort((a,b) => b[1]-a[1]);
+  const maxRev = sorted[0]?.[1] || 1;
+
+  // Revenue bars (all-time ranking)
+  document.getElementById('bars').innerHTML = sorted.map(([name,rev],i) => `
+    <div class="pr">
+      <div class="av">${ini(name)}</div>
+      <div class="pi">
+        <div class="pnr">${name}${i===0?'<span class="top-tag">TOP</span>':''}</div>
+        <div class="br"><div class="bt"><div class="bf" data-w="${Math.round((rev/maxRev)*100)}" style="width:0%"></div></div></div>
+      </div>
+      <div class="pamt">${fmt(rev)}</div>
+    </div>`).join('');
+
+  setTimeout(() => {
+    document.querySelectorAll('.bf[data-w]').forEach(el => { el.style.width = el.dataset.w + '%'; });
+  }, 60);
+
+  // Payout status list — three states: PAID ✓ | OWED | CLEAR
+  document.getElementById('polist').innerHTML = sorted.map(([name]) => {
+    const p    = mMap[name] || {payout:0, sessions:0, type:'—'};
+    const paid = p.payout > 0 && isPaid(name, currentMonth);
+    const owed = p.payout > 0 && !isPaid(name, currentMonth);
+
+    const amtCls  = paid ? 'paid' : owed ? 'owed' : 'clear';
+    const pillCls = paid ? 'paid' : owed ? 'owed' : 'clear';
+    const pillTxt = paid ? '✓ PAID' : owed ? 'OWED' : 'CLEAR';
+    const amtTxt  = (paid||owed) ? fmt(p.payout) : '—';
+    const avStyle = paid ? 'border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.07)' : '';
+
+    return `
+      <div class="por">
+        <div class="av" style="width:30px;height:30px;font-size:11px;${avStyle}">${ini(name)}</div>
+        <div style="flex:1">
+          <div class="pon">${name}</div>
+          <div class="pot">${p.type} · ${p.sessions} session${p.sessions!==1?'s':''}</div>
+        </div>
+        <div class="poa ${amtCls}">${amtTxt}</div>
+        <div class="pill ${pillCls}">${pillTxt}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderAllTime() {
+  const totalRev = sessions.reduce((s,r) => s + n(f(r,'Total Rev.','Total Rev','Total Revenue')), 0);
+
+  const atRev = {};
+  sessions.forEach(r => {
+    const name = f(r,'Practitioner','practitioner'); if(!name) return;
+    atRev[name] = (atRev[name]||0) + n(f(r,'Total Rev.','Total Rev','Total Revenue'));
+  });
+
+  const top = Object.entries(atRev).sort((a,b) => b[1]-a[1])[0];
+  const activePracts = practitioners.filter(p =>
+    (f(p,'Active','active')||'').toLowerCase() === 'yes'
+  ).length || Object.keys(atRev).length;
+
+  document.getElementById('at1').textContent  = Math.round(totalRev).toLocaleString();
+  document.getElementById('at1s').textContent = `KES across ${months.length} month${months.length!==1?'s':''}`;
+  document.getElementById('at2').textContent  = sessions.length;
+  document.getElementById('at3').textContent  = top ? top[0] : '—';
+  document.getElementById('at3s').textContent = top ? `${fmt(top[1])} all-time` : '';
+  document.getElementById('at4').textContent  = activePracts;
+}
+
+function renderMonthlyTable() {
+  document.getElementById('mbadge').textContent = `${months.length} month${months.length!==1?'s':''}`;
+  document.getElementById('mtbody').innerHTML = months.map(m => {
+    const rows   = sessions.filter(r => f(r,'Month','month').trim() === m);
+    const rev    = rows.reduce((s,r) => s + n(f(r,'Total Rev.','Total Rev','Total Revenue')), 0);
+    const studio = rows.reduce((s,r) => s + n(f(r,'Studio Recv.','Studio Recv','Studio Received')), 0);
+    const payout = rows.reduce((s,r) => s + n(f(r,'Pract. Payout','Practitioner Payout','Pract Payout')), 0);
+    const avg    = rows.length ? Math.round(rev/rows.length) : 0;
+    const active = m === currentMonth;
+    return `<tr class="${active?'ar':''}">
+      <td style="font-weight:${active?600:400};color:${active?'var(--emerald)':'var(--white)'}">${m}</td>
+      <td class="num em">${fmt(rev)}</td>
+      <td class="num">${rows.length}</td>
+      <td class="num">${fmt(studio)}</td>
+      <td class="num go">${fmt(payout)}</td>
+      <td class="num" style="color:var(--muted)">${fmt(avg)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const el = document.getElementById('hlist');
+  const badge = document.getElementById('hbadge');
+
+  if (!history.length) {
+    badge.textContent = 'no records yet';
+    el.innerHTML = `<div class="empty">No payout records yet. Once you add entries to your PAYOUT HISTORY sheet, cleared payments will appear here automatically.</div>`;
+    return;
+  }
+
+  const sorted = [...history].sort((a,b) => {
+    return new Date(f(b,'Date Paid','Date','date')) - new Date(f(a,'Date Paid','Date','date'));
+  });
+
+  badge.textContent = `${sorted.length} record${sorted.length!==1?'s':''}`;
+
+  el.innerHTML = sorted.map(r => {
+    const name   = f(r,'Practitioner','practitioner');
+    const month  = f(r,'Month Covered','month covered','Month','month');
+    const amount = n(f(r,'Amount Paid','Amount','amount'));
+    const date   = f(r,'Date Paid','Date','date');
+    const notes  = f(r,'Notes','notes');
+    return `
+      <div class="hor">
+        <div class="hav">${ini(name)}</div>
+        <div style="flex:1">
+          <div class="hn">${name}</div>
+          <div class="hm">${month}${notes?' · '+notes:''}</div>
+        </div>
+        <div class="ha">${fmt(amount)}</div>
+        <div class="hd">${date}</div>
+        <div class="pill paid">✓ PAID</div>
+      </div>`;
+  }).join('');
+}
+
+function setStatus(type, text) {
+  document.getElementById('sdot').className = 'dot ' + type;
+  document.getElementById('stxt').textContent = text;
+}
+
+// ─── LAUNCH ───────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
