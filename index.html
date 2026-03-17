@@ -587,7 +587,7 @@ function calcBalance(practName, month){
 
   rows.forEach(r => {
     const totalRev  = n(f(r,'Total Rev.','Total Rev','Total Revenue'));
-    const practRecv = n(f(r,'Pract Recv.','Pract Recv','Practitioner Received'));
+    const practRecv = n(f(r,'Pract Recv.','Pract Recv','Pract. Recv','Pract. Recv.','Practitioner Recv','Practitioner Received','pract recv','pract. recv'));
     const comm      = totalRev * commRate;
     totalCommission       += comm;
     totalDirectReceived   += practRecv;
@@ -639,7 +639,7 @@ async function boot(){
       const name=f(p,'Practitioner Name','Name','name');
       if(name)practMap[name]={
         phone:f(p,'Phone/Contact','Phone','Contact','phone'),
-        commission:n(f(p,'Commission Rate','Commission','commission'))||DEFAULT_COMMISSION
+        commission:(()=>{ const raw=n(f(p,'Commission Rate','Commission','commission')); if(!raw) return DEFAULT_COMMISSION; return raw>1 ? raw/100 : raw; })()
       };
     });
 
@@ -763,7 +763,7 @@ function renderMonth(){
 
     // Balance breakdown tooltip
     const breakdown=`
-      <div class="bal-row"><span class="bal-label">Total Commission (${((practMap[name]||{}).commission||DEFAULT_COMMISSION)*100}%)</span><span class="bal-val">${fmt(bal.totalCommission)}</span></div>
+      <div class="bal-row"><span class="bal-label">Total Commission (${Math.round(((practMap[name]||{}).commission||DEFAULT_COMMISSION)*100)}%)</span><span class="bal-val">${fmt(bal.totalCommission)}</span></div>
       <div class="bal-row"><span class="bal-label">Direct Collections</span><span class="bal-val ${bal.totalDirectReceived>0?'neg':''}">${bal.totalDirectReceived>0?'− ':''} ${fmt(bal.totalDirectReceived)}</span></div>
       ${bal.overpayment>0?`<div class="bal-row"><span class="bal-label" style="color:var(--gold)">Over-collected (absorbed)</span><span class="bal-val" style="color:var(--gold)">− ${fmt(bal.overpayment)}</span></div>`:''}
       <div class="bal-row"><span class="bal-label">Net Owed</span><span class="bal-val ${owed?'pos':paid?'pos':'zero'}">${fmt(bal.netOwed)}</span></div>
