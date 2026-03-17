@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPARK Studio — Live Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg:#0c0f0e; --surface:#131916; --surface2:#1a2020;
@@ -76,7 +77,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 .brand em{font-style:italic;color:var(--emerald)}
 .bsub{font-size:13px;color:var(--muted);margin-top:5px;font-weight:300}
 .msel-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
-.msel{display:flex;flex-wrap:wrap;justify-content:flex-end;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:4px;gap:2px;max-width:400px}
+.msel{display:flex;flex-wrap:wrap;justify-content:flex-end;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:4px;gap:2px;max-width:420px}
 .mbtn{padding:6px 14px;border-radius:100px;border:none;background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
 .mbtn.active{background:var(--emerald);color:#0c0f0e;font-weight:600}
 .mhint{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace}
@@ -143,6 +144,13 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 .wa-btn:hover{background:rgba(37,211,102,.22)}
 .rcpt-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace}
 .rcpt-btn:hover{color:var(--white);border-color:var(--emerald)}
+
+/* BALANCE BREAKDOWN */
+.bal-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px dashed var(--border)}
+.bal-row:last-child{border-bottom:none;padding-top:8px;font-weight:600;font-size:13px}
+.bal-label{color:var(--muted)}
+.bal-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--white)}
+.bal-val.pos{color:var(--emerald)}.bal-val.neg{color:var(--red)}.bal-val.zero{color:var(--muted2)}
 
 /* FLAG ROWS */
 .flag-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:10px;font-size:13px}
@@ -216,8 +224,8 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 /* RECEIPT MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:400px;overflow:hidden}
-.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:420px;overflow:hidden;max-height:90vh;overflow-y:auto}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--white)}
 .modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px}
 .modal-body{padding:22px}
@@ -227,12 +235,22 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 .rcpt-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
 .rcpt-row:last-of-type{border-bottom:none}
 .rcpt-key{color:var(--muted)}.rcpt-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--white);font-weight:500}
+.rcpt-sessions{margin:12px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.rcpt-sess-head{padding:7px 12px;background:var(--surface2);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rcpt-sess-row{display:flex;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border);font-size:12px}
+.rcpt-sess-row .rk{color:var(--muted)}.rcpt-sess-row .rv{font-family:'DM Mono',monospace;color:var(--white)}
+.rcpt-balance{margin:12px 0;border:1px solid rgba(74,222,128,.2);border-radius:8px;overflow:hidden;background:rgba(74,222,128,.04)}
+.rcpt-bal-head{padding:7px 12px;background:rgba(74,222,128,.08);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--emerald)}
+.rcpt-bal-row{display:flex;justify-content:space-between;padding:6px 12px;border-top:1px solid rgba(74,222,128,.1);font-size:12px}
+.rcpt-bal-row .rk{color:var(--muted)}.rcpt-bal-row .rv{font-family:'DM Mono',monospace;color:var(--white)}
 .rcpt-total{background:var(--emerald-glow);border-radius:10px;padding:13px 15px;margin-top:14px;display:flex;justify-content:space-between;align-items:center}
 .rcpt-total-label{font-size:13px;color:var(--emerald);font-weight:500}
 .rcpt-total-val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--emerald)}
 .rcpt-footer{font-size:10px;color:var(--muted2);text-align:center;margin-top:14px;font-family:'DM Mono',monospace}
-.print-btn{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;color:var(--white);cursor:pointer;margin-top:14px}
-.print-btn:hover{border-color:var(--emerald);color:var(--emerald)}
+.dl-btn{width:100%;background:var(--emerald);color:#0c0f0e;border:none;border-radius:8px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:14px;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.dl-btn:hover{opacity:.85}
+.dl-btn.secondary{background:var(--surface2);color:var(--white);border:1px solid var(--border2);margin-top:8px}
+.dl-btn.secondary:hover{border-color:var(--emerald);color:var(--emerald);background:var(--surface2)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .card:nth-child(1){animation-delay:.03s}.card:nth-child(2){animation-delay:.07s}
@@ -253,8 +271,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
   .ati:nth-child(even),.ati:last-child{border-bottom:none}
   .header{flex-direction:column;align-items:flex-start;gap:14px}
   .msel-wrap{align-items:flex-start;width:100%}
-  .msel{border-radius:12px;width:100%}
-  .mbtn{flex:1;text-align:center}
+  .msel{border-radius:12px;width:100%}.mbtn{flex:1;text-align:center}
   .proj-banner{flex-direction:column;align-items:flex-start}
   .settings-panel{width:100%}
 }
@@ -290,7 +307,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 <div id="error-screen">
   <div style="font-size:36px">⚠️</div>
   <div class="err-t">Could not load data</div>
-  <div class="err-d">Your Google Sheet could not be reached. The most likely fix is to re-publish your sheet. Open Google Sheets → File → Share → Publish to web → confirm all tabs are published.</div>
+  <div class="err-d">Your Google Sheet could not be reached. Open Google Sheets → File → Share → Publish to web → confirm all tabs are published.</div>
   <div class="err-detail" id="err-detail">—</div>
   <button class="btn-ghost" onclick="boot()">↻ Try Again</button>
 </div>
@@ -310,13 +327,13 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
   <div class="sgroup">
     <div class="slabel">Monthly Fixed Expenses (KES)</div>
     <input class="sinput" id="s-expenses" type="number" placeholder="e.g. 15000">
-    <div class="sdesc" style="margin-top:6px">Rent, utilities etc. Subtracted from studio income to show true profit.</div>
+    <div class="sdesc" style="margin-top:6px">Subtracted from studio income to show true profit.</div>
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div class="sdivider"></div>
   <div class="sgroup">
     <div class="slabel">PIN Protection</div>
-    <div class="sdesc">Set a 4-digit PIN to lock the dashboard on open. Leave blank to remove PIN.</div>
+    <div class="sdesc">Set a 4-digit PIN to lock the dashboard. Leave blank to remove.</div>
     <input class="sinput" id="s-pin" type="password" maxlength="4" placeholder="New 4-digit PIN">
     <button class="save-btn" style="margin-top:8px;background:var(--surface2);color:var(--white);border:1px solid var(--border2)" onclick="savePin()">Set PIN</button>
   </div>
@@ -346,7 +363,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
   <div class="topbar">
     <div class="sdot-wrap"><div class="dot" id="sdot"></div><span id="stxt">Connecting...</span></div>
     <div class="topbar-actions">
-      <button class="icon-btn" onclick="window.print()">🖨 PDF</button>
+      <button class="icon-btn" onclick="window.print()">🖨 Print</button>
       <button class="icon-btn" onclick="toggleTheme()">☀️/🌙</button>
       <button class="icon-btn" onclick="openSettings()">⚙ Settings</button>
       <button class="icon-btn" onclick="boot()">↻ Refresh</button>
@@ -357,7 +374,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
     <div>
       <div class="eyebrow">Live Studio Analytics</div>
       <div class="brand">SPARK <em>Studio</em></div>
-      <div class="bsub">Wellness Management Dashboard · Auto-updates every 5 min</div>
+      <div class="bsub">Real-time balance tracking · Auto-updates every 5 min</div>
     </div>
     <div class="msel-wrap">
       <div class="msel" id="msel"></div>
@@ -369,7 +386,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
     <div class="card"><div class="cglow" style="background:var(--emerald-glow)"></div><div class="cicon" style="background:var(--emerald-glow)">💰</div><div class="clabel">Total Revenue</div><div class="cval" id="c1" style="color:var(--emerald)">—</div><div class="csub">selected month</div></div>
     <div class="card"><div class="cicon" style="background:rgba(96,165,250,.08)">🧘</div><div class="clabel">Sessions Held</div><div class="cval" id="c2">—</div><div class="csub">classes this month</div></div>
     <div class="card"><div class="cicon" style="background:var(--emerald-glow)">🏛️</div><div class="clabel">Studio Income</div><div class="cval" id="c3">—</div><div class="csub">after practitioner share</div></div>
-    <div class="card"><div class="cglow" style="background:var(--gold-glow)"></div><div class="cicon" style="background:var(--gold-glow)">📤</div><div class="clabel">Outstanding Payouts</div><div class="cval" id="c4" style="color:var(--gold)">—</div><div class="csub">still owed</div></div>
+    <div class="card"><div class="cglow" style="background:var(--gold-glow)"></div><div class="cicon" style="background:var(--gold-glow)">📤</div><div class="clabel">Outstanding Payouts</div><div class="cval" id="c4" style="color:var(--gold)">—</div><div class="csub">cumulative balance</div></div>
     <div class="card"><div class="cicon" style="background:rgba(248,113,113,.08)">📊</div><div class="clabel">Studio Profit</div><div class="cval" id="c5">—</div><div class="csub" id="c5sub">income minus expenses</div></div>
   </div>
 
@@ -383,7 +400,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
     <div class="proj-left">
       <div class="proj-eyebrow">📈 Month Projection</div>
       <div class="proj-val" id="proj-val">—</div>
-      <div class="proj-sub" id="proj-sub">Estimated month-end revenue based on current pace</div>
+      <div class="proj-sub">Estimated month-end revenue based on current pace</div>
     </div>
     <div class="proj-right">
       <div class="proj-stat" id="proj-s1">—</div>
@@ -398,7 +415,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
       <div class="pbody" id="bars"></div>
     </div>
     <div class="panel">
-      <div class="ph"><div class="pt">Payout Status</div><div class="pb" id="pobadge">—</div></div>
+      <div class="ph"><div class="pt">Payout Balance</div><div class="pb" id="pobadge">—</div></div>
       <div class="pbody" id="polist"></div>
     </div>
     <div class="panel">
@@ -418,7 +435,7 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
       <div class="ph"><div class="pt">Monthly Breakdown</div><div class="pb" id="mbadge">—</div></div>
       <div style="overflow-x:auto">
         <table class="mtbl">
-          <thead><tr><th>Month</th><th>Revenue</th><th>Sessions</th><th>Studio Income</th><th>Payouts</th><th>Avg/Session</th><th>vs Prev</th></tr></thead>
+          <thead><tr><th>Month</th><th>Revenue</th><th>Sessions</th><th>Studio Income</th><th>Payouts Owed</th><th>Avg/Session</th><th>vs Prev</th></tr></thead>
           <tbody id="mtbody"></tbody>
         </table>
       </div>
@@ -438,59 +455,56 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 </div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
+// ── CONFIG ───────────────────────────────────────────────────────────────────
 const SHEET = '2PACX-1vR7vqT3yeUecPwtwWHBXZTLkrvqnq7MTBDFRbtfVRcHjSKCLxZeMJekvV5mRb8i72dWDf3D55SfQmAa';
 const CSV = {
   sessions:      `https://docs.google.com/spreadsheets/d/e/${SHEET}/pub?gid=0&single=true&output=csv`,
   practitioners: `https://docs.google.com/spreadsheets/d/e/${SHEET}/pub?gid=135420663&single=true&output=csv`,
   history:       `https://docs.google.com/spreadsheets/d/e/${SHEET}/pub?gid=1394578292&single=true&output=csv`
 };
-
-// Proxy chain — tries direct first, then 5 fallbacks
 const PROXIES = [
-  u => u,                                                                    // 1. Direct (no proxy)
-  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,        // 2. AllOrigins
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,                     // 3. CORSProxy.io
-  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,   // 4. CodeTabs
-  u => `https://thingproxy.freeboard.io/fetch/${u}`,                         // 5. ThingProxy
-  u => `https://cors-anywhere.herokuapp.com/${u}`                            // 6. CORS Anywhere
+  u => u,
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`
 ];
-
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const REFRESH_MS = 5 * 60 * 1000;
+const DEFAULT_COMMISSION = 0.5;
 
 let sessions=[], practitioners=[], history=[], months=[], currentMonth=null, timer=null, practMap={};
-let pinBuffer = '';
+let pinBuffer='';
 
 // ── SETTINGS ─────────────────────────────────────────────────────────────────
-const S = {
-  get target()   { return Number(localStorage.getItem('spark_target'))||0 },
-  get capacity() { return Number(localStorage.getItem('spark_capacity'))||0 },
-  get expenses() { return Number(localStorage.getItem('spark_expenses'))||0 },
-  get pin()      { return localStorage.getItem('spark_pin')||'' },
-  get theme()    { return localStorage.getItem('spark_theme')||'dark' },
+const S={
+  get target()  {return Number(localStorage.getItem('spark_target'))||0},
+  get capacity(){return Number(localStorage.getItem('spark_capacity'))||0},
+  get expenses(){return Number(localStorage.getItem('spark_expenses'))||0},
+  get pin()     {return localStorage.getItem('spark_pin')||''},
+  get theme()   {return localStorage.getItem('spark_theme')||'dark'},
 };
-function saveSettings() {
-  localStorage.setItem('spark_target',   document.getElementById('s-target').value||0);
-  localStorage.setItem('spark_capacity', document.getElementById('s-capacity').value||0);
-  localStorage.setItem('spark_expenses', document.getElementById('s-expenses').value||0);
-  closeSettings(); render();
+function saveSettings(){
+  localStorage.setItem('spark_target',  document.getElementById('s-target').value||0);
+  localStorage.setItem('spark_capacity',document.getElementById('s-capacity').value||0);
+  localStorage.setItem('spark_expenses',document.getElementById('s-expenses').value||0);
+  closeSettings();render();
 }
-function savePin() {
+function savePin(){
   const v=document.getElementById('s-pin').value.trim();
   if(v&&v.length!==4){alert('PIN must be exactly 4 digits');return;}
   v?localStorage.setItem('spark_pin',v):localStorage.removeItem('spark_pin');
   document.getElementById('s-pin').value='';
-  closeSettings(); alert(v?'PIN set':'PIN removed');
+  closeSettings();alert(v?'PIN set':'PIN removed');
 }
-function openSettings() {
+function openSettings(){
   document.getElementById('s-target').value=S.target||'';
   document.getElementById('s-capacity').value=S.capacity||'';
   document.getElementById('s-expenses').value=S.expenses||'';
   document.getElementById('soverlay').classList.add('open');
   document.getElementById('spanel').classList.add('open');
 }
-function closeSettings() {
+function closeSettings(){
   document.getElementById('soverlay').classList.remove('open');
   document.getElementById('spanel').classList.remove('open');
 }
@@ -499,14 +513,10 @@ function toggleTheme(){setTheme(S.theme==='dark'?'light':'dark');}
 function applyTheme(){document.body.classList.toggle('light',S.theme==='light');}
 
 // ── PIN ───────────────────────────────────────────────────────────────────────
-function checkPin() {
-  if (!S.pin) { startLoad(); return; }
-  document.getElementById('loading').style.display='none';
-  document.getElementById('pin-screen').style.display='flex';
-}
-function pinPress(d) {
+function checkPin(){if(!S.pin){startLoad();return;}document.getElementById('loading').style.display='none';document.getElementById('pin-screen').style.display='flex';}
+function pinPress(d){
   if(pinBuffer.length>=4)return;
-  pinBuffer+=d; updatePinDots();
+  pinBuffer+=d;updatePinDots();
   if(pinBuffer.length===4){
     if(pinBuffer===S.pin){document.getElementById('pin-screen').style.display='none';startLoad();}
     else{document.getElementById('pin-err').textContent='Incorrect PIN';setTimeout(()=>{pinBuffer='';updatePinDots();document.getElementById('pin-err').textContent='';},800);}
@@ -516,22 +526,22 @@ function pinDel(){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();}
 function updatePinDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuffer.length);}
 
 // ── FETCH ─────────────────────────────────────────────────────────────────────
-async function fetchCSV(url) {
-  const errors = [];
-  for (const proxy of PROXIES) {
-    try {
-      const res = await fetch(proxy(url), {signal:AbortSignal.timeout(9000)});
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const text = await res.text();
-      if (text.trim().length > 10 && text.includes(',')) return text;
-      throw new Error('Empty or malformed response');
-    } catch(e) { errors.push(`${proxy(url).slice(0,40)}… → ${e.message}`); }
+async function fetchCSV(url){
+  const errors=[];
+  for(const px of PROXIES){
+    try{
+      const res=await fetch(px(url),{signal:AbortSignal.timeout(9000)});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      const text=await res.text();
+      if(text.trim().length>10&&text.includes(','))return text;
+      throw new Error('Empty response');
+    }catch(e){errors.push(e.message);}
   }
   throw new Error(errors.join(' | '));
 }
 
 // ── CSV PARSER ────────────────────────────────────────────────────────────────
-function parseCSV(text) {
+function parseCSV(text){
   const lines=text.trim().split(/\r?\n/);
   if(lines.length<2)return[];
   const headers=splitCSV(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
@@ -557,6 +567,46 @@ function f(row,...keys){
 function n(v){const x=parseFloat((v||'').replace(/[^0-9.-]/g,''));return isNaN(x)?0:x;}
 function fmt(v){return'KES '+Math.round(v).toLocaleString();}
 function ini(name){return(name||'??').slice(0,2).toUpperCase();}
+
+// ── CUMULATIVE PAYOUT BALANCE ─────────────────────────────────────────────────
+// For a given practitioner and month, calculate the real net balance from raw data.
+// Ignores the sheet's Pract Payout column entirely.
+// Formula: totalCommission - totalDirectReceived
+// If positive → studio owes practitioner
+// If negative → practitioner took more than earned (studio absorbed, no clawback)
+// Net owed = MAX(0, totalCommission - totalDirectReceived)
+function calcBalance(practName, month){
+  const rows = sessions.filter(r =>
+    f(r,'Practitioner','practitioner').toLowerCase() === practName.toLowerCase() &&
+    f(r,'Month','month').trim() === month
+  );
+  const commRate = (practMap[practName]||{}).commission || DEFAULT_COMMISSION;
+  let totalCommission = 0;
+  let totalDirectReceived = 0;
+  const sessionDetails = [];
+
+  rows.forEach(r => {
+    const totalRev  = n(f(r,'Total Rev.','Total Rev','Total Revenue'));
+    const practRecv = n(f(r,'Pract Recv.','Pract Recv','Practitioner Received'));
+    const comm      = totalRev * commRate;
+    totalCommission       += comm;
+    totalDirectReceived   += practRecv;
+    sessionDetails.push({
+      date: f(r,'Date','date'),
+      type: f(r,'Type','Session Type','type'),
+      att:  n(f(r,'Attendees','attendees')),
+      totalRev, practRecv, comm,
+      sessionOwed: Math.max(0, comm - practRecv)
+    });
+  });
+
+  const netBalance   = totalCommission - totalDirectReceived;
+  const netOwed      = Math.max(0, netBalance);
+  const overpayment  = Math.max(0, -netBalance); // how much practitioner took over commission
+
+  return { totalCommission, totalDirectReceived, netOwed, overpayment, sessionDetails, sessions: rows.length };
+}
+
 function isPaid(pract,month){
   return history.some(r=>{
     const p=f(r,'Practitioner','practitioner');
@@ -567,14 +617,12 @@ function isPaid(pract,month){
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 function startLoad(){document.getElementById('loading').style.display='flex';boot();}
-
-async function boot() {
+async function boot(){
   setStatus('loading','Connecting...');
   document.getElementById('loading').style.display='flex';
   document.getElementById('error-screen').style.display='none';
   document.getElementById('dash').style.display='none';
-
-  try {
+  try{
     setLmsg('Fetching sessions...');
     const st=await fetchCSV(CSV.sessions);
     setLmsg('Fetching practitioners...');
@@ -589,24 +637,25 @@ async function boot() {
     practMap={};
     practitioners.forEach(p=>{
       const name=f(p,'Practitioner Name','Name','name');
-      if(name)practMap[name]={phone:f(p,'Phone/Contact','Phone','Contact','phone'),commission:n(f(p,'Commission Rate','Commission','commission'))};
+      if(name)practMap[name]={
+        phone:f(p,'Phone/Contact','Phone','Contact','phone'),
+        commission:n(f(p,'Commission Rate','Commission','commission'))||DEFAULT_COMMISSION
+      };
     });
 
     document.getElementById('loading').style.display='none';
     document.getElementById('dash').style.display='block';
-    buildMonths(); render();
+    buildMonths();render();
     setStatus('live',`Live · ${new Date().toLocaleTimeString()}`);
     if(timer)clearInterval(timer);
     timer=setInterval(boot,REFRESH_MS);
-
-  } catch(e) {
+  }catch(e){
     document.getElementById('loading').style.display='none';
     document.getElementById('error-screen').style.display='flex';
     document.getElementById('err-detail').textContent=e.message;
     setStatus('error','Connection failed');
   }
 }
-
 function setLmsg(t){document.getElementById('lmsg').textContent=t;}
 
 // ── MONTHS ────────────────────────────────────────────────────────────────────
@@ -629,24 +678,24 @@ function renderMonth(){
   const rows=sessions.filter(r=>f(r,'Month','month').trim()===currentMonth);
   const totalRev =rows.reduce((s,r)=>s+n(f(r,'Total Rev.','Total Rev','Total Revenue')),0);
   const studioInc=rows.reduce((s,r)=>s+n(f(r,'Studio Recv.','Studio Recv','Studio Received')),0);
-  const expenses=S.expenses, profit=studioInc-expenses;
+  const expenses=S.expenses,profit=studioInc-expenses;
 
-  const mMap={};
-  rows.forEach(r=>{
-    const name=f(r,'Practitioner','practitioner');if(!name)return;
-    if(!mMap[name])mMap[name]={payout:0,sessions:0,type:''};
-    mMap[name].payout+=n(f(r,'Pract. Payout','Practitioner Payout','Pract Payout'));
-    mMap[name].sessions++;
-    if(!mMap[name].type)mMap[name].type=f(r,'Type','Session Type','type');
+  // Get all practitioner names that appear this month
+  const practNames=[...new Set(rows.map(r=>f(r,'Practitioner','practitioner')).filter(Boolean))];
+
+  // Calculate cumulative balance for each practitioner
+  let totalOwed=0;
+  const balances={};
+  practNames.forEach(name=>{
+    const bal=calcBalance(name,currentMonth);
+    balances[name]=bal;
+    if(!isPaid(name,currentMonth)) totalOwed+=bal.netOwed;
   });
-
-  let outstanding=0;
-  Object.entries(mMap).forEach(([name,p])=>{if(!isPaid(name,currentMonth))outstanding+=p.payout;});
 
   document.getElementById('c1').textContent=fmt(totalRev);
   document.getElementById('c2').textContent=rows.length;
   document.getElementById('c3').textContent=fmt(studioInc);
-  document.getElementById('c4').textContent=fmt(outstanding);
+  document.getElementById('c4').textContent=fmt(totalOwed);
   document.getElementById('c5').textContent=fmt(profit);
   document.getElementById('c5').style.color=profit>=0?'var(--emerald)':'var(--red)';
   document.getElementById('c5sub').textContent=expenses?`income − ${fmt(expenses)}`:'set expenses in Settings';
@@ -660,24 +709,21 @@ function renderMonth(){
     document.getElementById('target-fill').style.width=pct+'%';
     document.getElementById('target-pct').textContent=pct+'%';
     document.getElementById('target-fill').style.background=pct>=100?'var(--gold)':'';
-  } else tbar.style.display='none';
+  }else tbar.style.display='none';
 
   // Projection
   const now=new Date(),ms=new Date('1 '+currentMonth);
   const dim=new Date(ms.getFullYear(),ms.getMonth()+1,0).getDate();
   const today=(now.getMonth()===ms.getMonth()&&now.getFullYear()===ms.getFullYear())?now.getDate():dim;
   const dailyRate=today>0?totalRev/today:0;
-  const projected=Math.round(dailyRate*dim);
-  document.getElementById('proj-val').textContent=fmt(projected);
+  document.getElementById('proj-val').textContent=fmt(Math.round(dailyRate*dim));
   document.getElementById('proj-s1').innerHTML=`<strong>${rows.length}</strong> sessions in ${today} day${today!==1?'s':''}`;
   document.getElementById('proj-s2').innerHTML=`<strong>${dim-today}</strong> days remaining`;
   document.getElementById('proj-s3').innerHTML=`<strong>${fmt(Math.round(dailyRate))}</strong>/day avg`;
 
-  // All-time rev for bars
+  // All-time revenue bars
   const atRev={};
   sessions.forEach(r=>{const name=f(r,'Practitioner','practitioner');if(!name)return;atRev[name]=(atRev[name]||0)+n(f(r,'Total Rev.','Total Rev','Total Revenue'));});
-
-  // Per-practitioner monthly data for sparklines
   const pMonthRev={};
   months.forEach(m=>{
     sessions.filter(r=>f(r,'Month','month').trim()===m).forEach(r=>{
@@ -686,11 +732,9 @@ function renderMonth(){
       pMonthRev[name][m]=(pMonthRev[name][m]||0)+n(f(r,'Total Rev.','Total Rev','Total Revenue'));
     });
   });
-
   const sorted=Object.entries(atRev).sort((a,b)=>b[1]-a[1]);
   const maxRev=sorted[0]?.[1]||1;
 
-  // Revenue bars
   document.getElementById('bars').innerHTML=sorted.map(([name,rev],i)=>{
     const vals=months.map(m=>(pMonthRev[name]||{})[m]||0);
     return`<div class="pr">
@@ -704,34 +748,54 @@ function renderMonth(){
   }).join('');
   setTimeout(()=>document.querySelectorAll('.bf[data-w]').forEach(el=>el.style.width=el.dataset.w+'%'),60);
 
-  // Payout status
+  // Payout balance panel — cumulative real-time
   document.getElementById('polist').innerHTML=sorted.map(([name])=>{
-    const p=mMap[name]||{payout:0,sessions:0,type:'—'};
-    const paid=p.payout>0&&isPaid(name,currentMonth);
-    const owed=p.payout>0&&!isPaid(name,currentMonth);
-    const ac=paid?'paid':owed?'owed':'clear',pc=ac,pt=paid?'✓ PAID':owed?'OWED':'CLEAR';
-    const at=(paid||owed)?fmt(p.payout):'—';
+    const bal=balances[name]||{netOwed:0,totalCommission:0,totalDirectReceived:0,overpayment:0,sessions:0};
+    const type=(rows.find(r=>f(r,'Practitioner','practitioner')===name)&&f(rows.find(r=>f(r,'Practitioner','practitioner')===name),'Type','Session Type','type'))||'—';
+    const paid=bal.netOwed>0&&isPaid(name,currentMonth);
+    const owed=bal.netOwed>0&&!isPaid(name,currentMonth);
+    const ac=paid?'paid':owed?'owed':'clear',pc=ac;
+    const pt=paid?'✓ PAID':owed?'OWED':'CLEAR';
+    const at=(paid||owed)?fmt(bal.netOwed):'—';
     const avs=paid?'border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.07)':'';
     const phone=(practMap[name]||{}).phone||'';
-    const waMsg=encodeURIComponent(`Hi ${name}, your payout of ${fmt(p.payout)} for ${currentMonth} is ready. Please confirm receipt. — SPARK Studio`);
-    const actions=owed?`<a class="wa-btn" href="https://wa.me/${phone}?text=${waMsg}" target="_blank">📲 WhatsApp</a><button class="rcpt-btn" onclick="showReceipt('${name}','${currentMonth}',${p.payout})">🧾</button>`:
-      paid?`<button class="rcpt-btn" onclick="showReceipt('${name}','${currentMonth}',${p.payout})">🧾</button>`:'';
+    const waMsg=encodeURIComponent(`Hi ${name}, your payout of ${fmt(bal.netOwed)} for ${currentMonth} is ready. Please confirm receipt. — SPARK Studio`);
+
+    // Balance breakdown tooltip
+    const breakdown=`
+      <div class="bal-row"><span class="bal-label">Total Commission (${((practMap[name]||{}).commission||DEFAULT_COMMISSION)*100}%)</span><span class="bal-val">${fmt(bal.totalCommission)}</span></div>
+      <div class="bal-row"><span class="bal-label">Direct Collections</span><span class="bal-val ${bal.totalDirectReceived>0?'neg':''}">${bal.totalDirectReceived>0?'− ':''} ${fmt(bal.totalDirectReceived)}</span></div>
+      ${bal.overpayment>0?`<div class="bal-row"><span class="bal-label" style="color:var(--gold)">Over-collected (absorbed)</span><span class="bal-val" style="color:var(--gold)">− ${fmt(bal.overpayment)}</span></div>`:''}
+      <div class="bal-row"><span class="bal-label">Net Owed</span><span class="bal-val ${owed?'pos':paid?'pos':'zero'}">${fmt(bal.netOwed)}</span></div>
+    `;
+
+    const actions=owed
+      ?`<a class="wa-btn" href="https://wa.me/${phone}?text=${waMsg}" target="_blank">📲</a><button class="rcpt-btn" onclick="showReceipt('${name}','${currentMonth}')">🧾 Receipt</button>`
+      :paid
+      ?`<button class="rcpt-btn" onclick="showReceipt('${name}','${currentMonth}')">🧾 Receipt</button>`:'';
+
     return`<div class="por">
       <div class="av" style="width:30px;height:30px;font-size:11px;${avs}">${ini(name)}</div>
-      <div style="flex:1"><div class="pon">${name}</div><div class="pot">${p.type} · ${p.sessions} sess</div></div>
-      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end">
-        <div class="poa ${ac}">${at}</div><div class="pill ${pc}">${pt}</div>${actions}
+      <div style="flex:1">
+        <div class="pon">${name}</div>
+        <div class="pot">${type} · ${bal.sessions} sess</div>
+        <div style="margin-top:6px;padding:8px;background:var(--surface2);border-radius:8px;font-size:11px">${breakdown}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-left:8px">
+        <div class="poa ${ac}">${at}</div>
+        <div class="pill ${pc}">${pt}</div>
+        ${actions}
       </div>
     </div>`;
   }).join('');
 
-  // Unpaid flag
+  // Unpaid sessions flag
   const unpaid=rows.filter(r=>{const s=f(r,'Status','status').toLowerCase();return s&&s!=='paid'&&f(r,'Total Rev.','Total Rev','Total Revenue');});
   const ub=document.getElementById('unflag-badge'),ul=document.getElementById('unflag-list');
   if(!unpaid.length){
     ub.textContent='all clear ✓';ub.style.color='var(--emerald)';
     ul.innerHTML=`<div class="empty">✓ All sessions for ${currentMonth} are marked paid.</div>`;
-  } else {
+  }else{
     ub.textContent=`${unpaid.length} unpaid`;ub.style.color='var(--red)';
     ul.innerHTML=unpaid.map(r=>`<div class="flag-row">
       <div class="flag-dot"></div>
@@ -757,7 +821,7 @@ function renderMonth(){
 // ── SPARKLINE ─────────────────────────────────────────────────────────────────
 function spark(vals){
   if(vals.length<2)return'';
-  const max=Math.max(...vals)||1,w=46,h=16;
+  const max=Math.max(...vals)||1,w=44,h=14;
   const pts=vals.map((v,i)=>`${Math.round((i/(vals.length-1))*w)},${Math.round(h-(v/max)*(h-2))}`).join(' ');
   return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="flex-shrink:0"><polyline points="${pts}" fill="none" stroke="rgba(74,222,128,.5)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
@@ -773,7 +837,7 @@ function renderDayAnalysis(){
   const max=Math.max(...dr)||1,best=dr.indexOf(Math.max(...dr));
   document.getElementById('best-day-badge').textContent=`best: ${DAYS[best]}`;
   document.getElementById('day-grid').innerHTML=DAYS.map((day,i)=>{
-    const h=Math.round((dr[i]/max)*54);
+    const h=Math.round((dr[i]/max)*52);
     return`<div class="day-col"><div class="day-bar-wrap"><div class="day-bar${i===best?' best':''}" style="height:${h}px;width:100%"></div></div><div class="day-name">${day}</div><div class="day-rev">${dr[i]?Math.round(dr[i]/1000)+'k':''}</div></div>`;
   }).join('');
 }
@@ -801,7 +865,9 @@ function renderMonthlyTable(){
     const rows=sessions.filter(r=>f(r,'Month','month').trim()===m);
     const rev=rows.reduce((s,r)=>s+n(f(r,'Total Rev.','Total Rev','Total Revenue')),0);
     const studio=rows.reduce((s,r)=>s+n(f(r,'Studio Recv.','Studio Recv','Studio Received')),0);
-    const payout=rows.reduce((s,r)=>s+n(f(r,'Pract. Payout','Practitioner Payout','Pract Payout')),0);
+    // Use cumulative balances for table too
+    const practNames=[...new Set(rows.map(r=>f(r,'Practitioner','practitioner')).filter(Boolean))];
+    const payout=practNames.reduce((s,name)=>s+calcBalance(name,m).netOwed,0);
     const avg=rows.length?Math.round(rev/rows.length):0;
     const active=m===currentMonth;
     let vs='—';
@@ -819,11 +885,7 @@ function renderMonthlyTable(){
 // ── HISTORY ───────────────────────────────────────────────────────────────────
 function renderHistory(){
   const el=document.getElementById('hlist'),badge=document.getElementById('hbadge');
-  if(!history.length){
-    badge.textContent='no records yet';
-    el.innerHTML=`<div class="empty">No payout records yet.<br>Add entries to your PAYOUT HISTORY sheet and they will appear here automatically.</div>`;
-    return;
-  }
+  if(!history.length){badge.textContent='no records yet';el.innerHTML=`<div class="empty">No payout records yet.<br>Add entries to your PAYOUT HISTORY sheet and they will appear here.</div>`;return;}
   const sorted=[...history].sort((a,b)=>new Date(f(b,'Date Paid','Date','date'))-new Date(f(a,'Date Paid','Date','date')));
   badge.textContent=`${sorted.length} record${sorted.length!==1?'s':''}`;
   el.innerHTML=sorted.map(r=>{
@@ -837,35 +899,159 @@ function renderHistory(){
       <div class="ha">${fmt(amount)}</div><div class="hd">${date}</div>
       <div class="pill paid">✓ PAID</div>
       ${phone?`<a class="wa-btn" href="https://wa.me/${phone}?text=${waMsg}" target="_blank">📲</a>`:''}
-      <button class="rcpt-btn" onclick="showReceipt('${name}','${month}',${amount},'${date}')">🧾</button>
+      <button class="rcpt-btn" onclick="showReceipt('${name}','${month}','${date}',${amount})">🧾 PDF</button>
     </div>`;
   }).join('');
 }
 
 // ── RECEIPT ───────────────────────────────────────────────────────────────────
-function showReceipt(name,month,amount,datePaid=''){
-  const sc=sessions.filter(r=>f(r,'Practitioner','practitioner').toLowerCase()===name.toLowerCase()&&f(r,'Month','month').trim()===month).length;
+// currentReceiptData holds data for the active receipt so download can access it
+let currentReceiptData = null;
+
+function showReceipt(name, month, datePaid='', overrideAmount=null){
+  const bal = calcBalance(name, month);
+  const amount = overrideAmount !== null ? overrideAmount : bal.netOwed;
+  const receiptNo = 'SPARK-' + Date.now().toString().slice(-6);
+
+  currentReceiptData = { name, month, amount, datePaid, bal, receiptNo };
+
+  const sessRows = bal.sessionDetails.map(s=>`
+    <div class="rcpt-sess-row">
+      <span class="rk">${s.date} · ${s.type} (${s.att} att.)</span>
+      <span class="rv">${fmt(s.comm)}</span>
+    </div>`).join('');
+
   document.getElementById('rcpt-body').innerHTML=`
     <div class="rcpt-logo">SPARK <em>Studio</em></div>
-    <div class="rcpt-studio">Payout Receipt</div>
-    <div class="rcpt-row"><span class="rcpt-key">Receipt No.</span><span class="rcpt-val">SPARK-${Date.now().toString().slice(-6)}</span></div>
+    <div class="rcpt-studio">Practitioner Payout Receipt</div>
+    <div class="rcpt-row"><span class="rcpt-key">Receipt No.</span><span class="rcpt-val">${receiptNo}</span></div>
     <div class="rcpt-row"><span class="rcpt-key">Practitioner</span><span class="rcpt-val">${name}</span></div>
     <div class="rcpt-row"><span class="rcpt-key">Period</span><span class="rcpt-val">${month}</span></div>
-    <div class="rcpt-row"><span class="rcpt-key">Sessions Covered</span><span class="rcpt-val">${sc} session${sc!==1?'s':''}</span></div>
+    <div class="rcpt-row"><span class="rcpt-key">Sessions</span><span class="rcpt-val">${bal.sessions} session${bal.sessions!==1?'s':''}</span></div>
     <div class="rcpt-row"><span class="rcpt-key">Date Issued</span><span class="rcpt-val">${datePaid||new Date().toLocaleDateString()}</span></div>
-    <div class="rcpt-total"><span class="rcpt-total-label">Amount Paid</span><span class="rcpt-total-val">${fmt(amount)}</span></div>
-    <div class="rcpt-footer">SPARK Studio · Issued ${new Date().toLocaleDateString()}</div>
-    <button class="print-btn" onclick="window.print()">🖨 Print Receipt</button>`;
+
+    <div class="rcpt-sessions">
+      <div class="rcpt-sess-head">Session Breakdown</div>
+      ${sessRows}
+    </div>
+
+    <div class="rcpt-balance">
+      <div class="rcpt-bal-head">Balance Calculation</div>
+      <div class="rcpt-bal-row"><span class="rk">Total Commission Earned</span><span class="rv">${fmt(bal.totalCommission)}</span></div>
+      <div class="rcpt-bal-row"><span class="rk">Direct Collections</span><span class="rv">− ${fmt(bal.totalDirectReceived)}</span></div>
+      ${bal.overpayment>0?`<div class="rcpt-bal-row"><span class="rk" style="color:var(--gold)">Over-collected (absorbed)</span><span class="rv" style="color:var(--gold)">− ${fmt(bal.overpayment)}</span></div>`:''}
+    </div>
+
+    <div class="rcpt-total">
+      <span class="rcpt-total-label">Net Amount Payable</span>
+      <span class="rcpt-total-val">${fmt(amount)}</span>
+    </div>
+    <div class="rcpt-footer">SPARK Studio · Generated ${new Date().toLocaleString()}</div>
+    <button class="dl-btn" onclick="downloadReceiptPDF()">⬇ Download PDF</button>
+    <button class="dl-btn secondary" onclick="closeReceipt()">Close</button>
+  `;
   document.getElementById('rcpt-modal').classList.add('open');
 }
-function closeReceipt(){document.getElementById('rcpt-modal').classList.remove('open');}
+
+function closeReceipt(){document.getElementById('rcpt-modal').classList.remove('open');currentReceiptData=null;}
+
+// ── PDF DOWNLOAD ──────────────────────────────────────────────────────────────
+function downloadReceiptPDF(){
+  const {jsPDF}=window.jspdf;
+  if(!jsPDF){alert('PDF library not loaded yet, please try again in a moment.');return;}
+  const d=currentReceiptData;
+  if(!d)return;
+
+  const doc=new jsPDF({unit:'mm',format:'a5',orientation:'portrait'});
+  const W=doc.internal.pageSize.getWidth();
+  const pad=16;
+  let y=20;
+
+  // Header
+  doc.setFontSize(22);doc.setFont('helvetica','bold');
+  doc.setTextColor(34,197,94); // emerald
+  doc.text('SPARK Studio',pad,y);
+  y+=8;
+
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.setTextColor(107,128,120);
+  doc.text('PRACTITIONER PAYOUT RECEIPT',pad,y);
+  y+=10;
+
+  // Divider
+  doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(pad,y,W-pad,y);y+=8;
+
+  // Meta rows
+  const metaRows=[
+    ['Receipt No.',d.receiptNo],
+    ['Practitioner',d.name],
+    ['Period',d.month],
+    ['Sessions',d.bal.sessions+' session'+(d.bal.sessions!==1?'s':'')],
+    ['Date Issued',d.datePaid||new Date().toLocaleDateString()],
+  ];
+  doc.setFontSize(10);
+  metaRows.forEach(([label,val])=>{
+    doc.setFont('helvetica','normal');doc.setTextColor(107,128,120);doc.text(label,pad,y);
+    doc.setFont('helvetica','bold');doc.setTextColor(20,30,25);doc.text(val,W/2,y);
+    y+=7;
+  });
+  y+=4;
+
+  // Session breakdown
+  doc.setDrawColor(220,220,220);doc.line(pad,y,W-pad,y);y+=6;
+  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(107,128,120);
+  doc.text('SESSION BREAKDOWN',pad,y);y+=5;
+
+  d.bal.sessionDetails.forEach(s=>{
+    doc.setFont('helvetica','normal');doc.setTextColor(20,30,25);doc.setFontSize(9);
+    doc.text(`${s.date}  ·  ${s.type}  (${s.att} att.)`,pad,y);
+    doc.setFont('helvetica','bold');
+    doc.text(fmt(s.comm),W-pad,y,{align:'right'});
+    y+=6;
+  });
+  y+=3;
+
+  // Balance
+  doc.setDrawColor(220,220,220);doc.line(pad,y,W-pad,y);y+=6;
+  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(34,197,94);
+  doc.text('BALANCE CALCULATION',pad,y);y+=5;
+
+  const balRows=[
+    ['Total Commission Earned',fmt(d.bal.totalCommission)],
+    ['Direct Collections','− '+fmt(d.bal.totalDirectReceived)],
+  ];
+  if(d.bal.overpayment>0)balRows.push(['Over-collected (absorbed)','− '+fmt(d.bal.overpayment)]);
+
+  doc.setFontSize(9);
+  balRows.forEach(([label,val])=>{
+    doc.setFont('helvetica','normal');doc.setTextColor(107,128,120);doc.text(label,pad,y);
+    doc.setFont('helvetica','bold');doc.setTextColor(20,30,25);doc.text(val,W-pad,y,{align:'right'});
+    y+=6;
+  });
+  y+=4;
+
+  // Total box
+  doc.setFillColor(234,253,245);doc.setDrawColor(34,197,94);doc.setLineWidth(0.5);
+  doc.roundedRect(pad,y,W-2*pad,14,3,3,'FD');
+  doc.setFontSize(11);doc.setFont('helvetica','normal');doc.setTextColor(34,197,94);
+  doc.text('Net Amount Payable',pad+4,y+9);
+  doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text(fmt(d.amount),W-pad-4,y+9,{align:'right'});
+  y+=20;
+
+  // Footer
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(150,150,150);
+  doc.text(`SPARK Studio  ·  Generated ${new Date().toLocaleString()}`,W/2,y,{align:'center'});
+
+  // Download
+  doc.save(`SPARK_Receipt_${d.name.replace(/\s/g,'_')}_${d.month.replace(/\s/g,'_')}.pdf`);
+}
 
 // ── STATUS ────────────────────────────────────────────────────────────────────
 function setStatus(type,text){document.getElementById('sdot').className='dot '+type;document.getElementById('stxt').textContent=text;}
 
 // ── LAUNCH ────────────────────────────────────────────────────────────────────
-applyTheme();
-checkPin();
+applyTheme();checkPin();
 </script>
 </body>
 </html>
