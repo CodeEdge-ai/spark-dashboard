@@ -474,6 +474,7 @@ const REFRESH_MS = 5 * 60 * 1000;
 const DEFAULT_COMMISSION = 0.5;
 
 let sessions=[], practitioners=[], history=[], months=[], currentMonth=null, timer=null, practMap={};
+let sessionHeaders=[];
 let pinBuffer='';
 
 // ── SETTINGS ─────────────────────────────────────────────────────────────────
@@ -541,15 +542,18 @@ async function fetchCSV(url){
 }
 
 // ── CSV PARSER ────────────────────────────────────────────────────────────────
-function parseCSV(text){
+function parseCSV(text, storeHeaders=false){
   const lines=text.trim().split(/\r?\n/);
   if(lines.length<2)return[];
   const headers=splitCSV(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
+  if(storeHeaders) sessionHeaders=headers;
   return lines.slice(1).map(line=>{
     const cols=splitCSV(line),obj={};
     headers.forEach((h,i)=>{obj[h]=(cols[i]||'').trim().replace(/^"|"$/g,'');});
+    // also store by index for positional fallback
+    obj.__cols = cols.map(c=>(c||'').trim().replace(/^"|"$/g,''));
     return obj;
-  }).filter(r=>Object.values(r).some(v=>v.trim()!==''));
+  }).filter(r=>Object.values(r).some(v=>typeof v==='string'&&v.trim()!==''));
 }
 function splitCSV(line){
   const res=[];let cur='',q=false;
@@ -568,7 +572,29 @@ function n(v){const x=parseFloat((v||'').replace(/[^0-9.-]/g,''));return isNaN(x
 function fmt(v){return'KES '+Math.round(v).toLocaleString();}
 function ini(name){return(name||'??').slice(0,2).toUpperCase();}
 
-// ── CUMULATIVE PAYOUT BALANCE ─────────────────────────────────────────────────
+// Find the index of Pract Recv column once from headers
+function getPractRecvIndex(){
+  const candidates = ['pract recv','pract recv.','pract. recv','pract. recv.','practitioner recv','practitioner received','pract recv auto'];
+  for(let i=0;i<sessionHeaders.length;i++){
+    if(candidates.includes(sessionHeaders[i].toLowerCase().trim())) return i;
+  }
+  return 8; // fallback: column I is always index 8 in this sheet
+}
+
+function getPractRecv(row){
+  // Try named lookup first
+  const byName = n(f(row,
+    'Pract Recv.','Pract Recv','Pract. Recv','Pract. Recv.',
+    'Practitioner Recv','Practitioner Received',
+    'Pract Recv AUTO','pract recv auto',
+    'pract recv','pract. recv'
+  ));
+  if(byName > 0) return byName;
+  // Positional fallback — column I (index 8)
+  const idx = getPractRecvIndex();
+  if(row.__cols && row.__cols[idx] !== undefined) return n(row.__cols[idx]);
+  return 0;
+}
 // For a given practitioner and month, calculate the real net balance from raw data.
 // Ignores the sheet's Pract Payout column entirely.
 // Formula: totalCommission - totalDirectReceived
@@ -587,7 +613,7 @@ function calcBalance(practName, month){
 
   rows.forEach(r => {
     const totalRev  = n(f(r,'Total Rev.','Total Rev','Total Revenue'));
-    const practRecv = n(f(r,'Pract Recv.','Pract Recv','Pract. Recv','Pract. Recv.','Practitioner Recv','Practitioner Received','pract recv','pract. recv'));
+    const practRecv = getPractRecv(r);
     const comm      = totalRev * commRate;
     totalCommission       += comm;
     totalDirectReceived   += practRecv;
@@ -630,7 +656,10 @@ async function boot(){
     setLmsg('Fetching payout history...');
     const ht=await fetchCSV(CSV.history);
 
-    sessions=parseCSV(st).filter(r=>{const m=f(r,'Month','month');return f(r,'Date','date')&&m&&!m.includes('1899')&&m.trim()!=='';});
+    sessions=parseCSV(st, true).filter(r=>{const m=f(r,'Month','month');return f(r,'Date','date')&&m&&!m.includes('1899')&&m.trim()!=='';});
+    console.log('SESSION HEADERS:', sessionHeaders);
+    console.log('Pract Recv index:', getPractRecvIndex());
+    if(sessions[0]) console.log('First row Pract Recv value:', getPractRecv(sessions[0]), '| Col I raw:', sessions[0].__cols?.[8]);
     practitioners=parseCSV(pt).filter(r=>f(r,'Practitioner Name','Name','name')!=='');
     history=parseCSV(ht).filter(r=>f(r,'Practitioner','practitioner')!=='');
 
