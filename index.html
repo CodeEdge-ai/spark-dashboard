@@ -1,989 +1,1469 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SPARK Studio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-:root {
-  --bg: #08090f;
-  --bg2: #0d1018;
-  --surface: rgba(255,255,255,0.04);
-  --surface-h: rgba(255,255,255,0.07);
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.13);
-  --gold: #e8a030;
-  --gold-d: rgba(232,160,48,0.14);
-  --teal: #20c9a0;
-  --teal-d: rgba(32,201,160,0.12);
-  --red: #ff6b6b;
-  --red-d: rgba(255,107,107,0.12);
-  --green: #4ade80;
-  --green-d: rgba(74,222,128,0.12);
-  --purple: #a78bfa;
-  --blue: #60a5fa;
-  --pink: #f472b6;
-  --text: #dde2ee;
-  --muted: #7a8394;
-  --muted2: #4a5568;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
-
-/* HEADER */
-.hdr{background:linear-gradient(180deg,rgba(232,160,48,.06) 0%,transparent 100%);border-bottom:1px solid var(--border);padding:14px 16px 0;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#c07a10);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:20px;color:#07080d;flex-shrink:0;box-shadow:0 4px 20px rgba(232,160,48,.35);letter-spacing:-1px}
-.logo-text h1{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;line-height:1;letter-spacing:3px;color:var(--text)}
-.logo-text p{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;text-transform:uppercase}
-.hdr-btns{display:flex;gap:8px}
-.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:15px}
-.icon-btn:active{transform:scale(.93);background:var(--surface-h)}
-.month-nav{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;height:40px;margin-bottom:12px}
-.month-nav button{width:40px;height:40px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .15s;flex-shrink:0}
-.month-nav button:active{color:var(--gold)}
-.month-label{flex:1;text-align:center;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--text);letter-spacing:.5px}
-
-/* MAIN */
-.main{padding:14px 14px 110px;max-width:600px;margin:0 auto}
-
-/* SECTION */
-.sec{margin-bottom:22px}
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.sec-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;letter-spacing:.3px}
-.sec-action{font-size:12px;color:var(--gold);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:500}
-
-/* METRIC GRID */
-.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.m-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;position:relative;overflow:hidden}
-.m-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--gold));opacity:.6}
-.m-card.wide{grid-column:span 2}
-.m-card.gold{--ac:var(--gold)}
-.m-card.teal{--ac:var(--teal)}
-.m-card.red{--ac:var(--red)}
-.m-card.green{--ac:var(--green)}
-.m-card.purple{--ac:var(--purple)}
-.m-label{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px}
-.m-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.m-val.sm{font-size:22px}
-.m-sub{font-size:11px;color:var(--muted);margin-top:4px}
-
-/* CARD */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-
-/* TOGGLE */
-.pills{display:flex;background:rgba(0,0,0,.35);border-radius:8px;padding:2px;gap:2px}
-.pill{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;border:none;background:none;font-family:'DM Sans',sans-serif}
-.pill.active{background:var(--gold);color:#07080d}
-
-/* CHART */
-.chart-wrap{padding:12px;height:190px;position:relative}
-
-/* PAYOUT CARDS */
-.payout-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:9px;overflow:hidden;transition:border-color .2s}
-.payout-card.expanded{border-color:var(--border2)}
-.payout-hdr{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
-.payout-exp{margin-left:auto;color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0}
-.payout-card.expanded .payout-exp{transform:rotate(180deg)}
-.payout-body{display:none;padding:0 14px 13px;border-top:1px solid var(--border)}
-.payout-card.expanded .payout-body{display:block}
-.payout-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:11px 0 10px}
-.ps-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-.ps-val{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;margin-top:2px}
-.payout-actions{display:flex;gap:7px}
-
-/* AVATARS */
-.avatar{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;font-family:'Cormorant Garamond',serif}
-.prac-name{font-weight:500;font-size:14px}
-.prac-sub{font-size:11px;color:var(--muted);margin-top:1px}
-.prac-right{text-align:right}
-.prac-pending-lbl{font-size:11px;margin-top:3px}
-.has-p{color:var(--gold)}
-.all-p{color:var(--teal)}
-
-/* BTNS */
-.btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
-.btn:active{transform:scale(.96)}
-.btn-primary{background:var(--gold);color:#07080d}
-.btn-ghost{background:var(--surface-h,rgba(255,255,255,.07));color:var(--text);border:1px solid var(--border)}
-.btn-teal{background:var(--teal-d);color:var(--teal);border:1px solid rgba(32,201,160,.2)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
-.b-overdue{background:var(--red-d);color:var(--red)}
-.b-paid{background:var(--green-d);color:var(--green)}
-.b-pending{background:var(--gold-d);color:var(--gold)}
-.b-yoga{background:rgba(96,165,250,.12);color:var(--blue)}
-.b-breathwork{background:rgba(167,139,250,.12);color:var(--purple)}
-.b-sound{background:var(--teal-d);color:var(--teal)}
-
-/* SESSION ROWS */
-.sr{position:relative;overflow:hidden}
-.sr-inner{padding:11px 14px;display:flex;align-items:center;gap:11px;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:1;transition:transform .2s;cursor:pointer}
-.sr:last-child .sr-inner{border-bottom:none}
-.sr-bg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 18px;font-size:12px;font-weight:700;letter-spacing:.4px;z-index:0}
-.sr-bg-r{left:0;background:var(--green);color:#050;border-radius:0}
-.sr-bg-l{right:0;background:var(--gold);color:#07080d}
-.sr-date{background:var(--surface-h,rgba(255,255,255,.07));border:1px solid var(--border);border-radius:8px;padding:5px 8px;text-align:center;min-width:40px;flex-shrink:0}
-.sr-day{font-size:16px;font-weight:700;line-height:1}
-.sr-mon{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
-.sr-det{flex:1;min-width:0}
-.sr-name{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sr-meta{font-size:11px;color:var(--muted);margin-top:2px}
-.sr-amt{text-align:right;flex-shrink:0}
-.sr-amt-val{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:var(--gold)}
-.sr-att{font-size:10px;color:var(--muted);margin-top:2px}
-
-/* ANALYTICS */
-.a-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
-.a-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px}
-.a-item.full{grid-column:span 2}
-.a-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.a-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700}
-.a-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.dow-wrap{display:flex;align-items:flex-end;gap:5px;height:64px;margin-top:10px}
-.dow-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%}
-.dow-track{flex:1;width:100%;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;display:flex;align-items:flex-end}
-.dow-fill{width:100%;background:linear-gradient(180deg,var(--gold),rgba(232,160,48,.5));border-radius:3px;transition:height .5s ease}
-.dow-lbl{font-size:9px;color:var(--muted)}
-
-/* INSIGHTS */
-.insight{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
-.insight-icon{font-size:20px;flex-shrink:0;margin-top:1px}
-.insight-title{font-size:13px;font-weight:600}
-.insight-desc{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
-.insight.warn{border-color:rgba(255,165,0,.2);background:rgba(255,165,0,.03)}
-.insight.danger{border-color:rgba(255,107,107,.2);background:rgba(255,107,107,.03)}
-.insight.success{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03)}
-.insight.info{border-color:rgba(32,201,160,.2);background:rgba(32,201,160,.03)}
-
-/* FAB */
-.fab-c{position:fixed;bottom:22px;right:18px;z-index:200;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.fab-menu{display:flex;flex-direction:column;gap:8px;align-items:flex-end;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
-.fab-menu.open{opacity:1;pointer-events:all;transform:translateY(0)}
-.fab-opt{display:flex;align-items:center;gap:9px;cursor:pointer}
-.fab-opt-lbl{background:rgba(11,14,21,.95);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;backdrop-filter:blur(12px);white-space:nowrap}
-.fab-opt-btn{width:44px;height:44px;border-radius:13px;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:transform .15s}
-.fab-opt-btn:active{transform:scale(.92)}
-.fab-opt-btn.add-btn{background:var(--teal);color:#050}
-.fab-opt-btn.pay-btn{background:var(--gold);color:#07080d}
-.fab-main{width:56px;height:56px;border-radius:18px;background:var(--gold);border:none;color:#07080d;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(232,160,48,.42);transition:all .2s}
-.fab-main:active{transform:scale(.94)}
-.fab-plus{transition:transform .25s;line-height:1}
-.fab-main.open .fab-plus{transform:rotate(45deg)}
-
-/* MODALS */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
-.modal.open{opacity:1;pointer-events:all}
-.modal-sheet{background:#0c0f18;border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:18px 18px 44px;width:100%;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
-.modal.open .modal-sheet{transform:translateY(0)}
-.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px}
-.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:18px}
-.fg{margin-bottom:13px}
-.fl{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.4px;margin-bottom:5px;display:block;text-transform:uppercase}
-.fi,.fs{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
-.fi:focus,.fs:focus{border-color:var(--gold)}
-.fs option{background:#0c0f18}
-.fr{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.comm-prev{background:var(--gold-d);border:1px solid rgba(232,160,48,.2);border-radius:10px;padding:10px 13px;margin-bottom:13px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.cp-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-.cp-val{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--gold);margin-top:2px}
-
-/* RECEIPT */
-.receipt-body{background:#fff;color:#111;border-radius:12px;padding:22px;font-family:'DM Sans',sans-serif;margin-bottom:14px}
-.r-brand{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;letter-spacing:2px;color:#111}
-.r-sub{font-size:11px;color:#666;margin-bottom:14px;margin-top:2px}
-.r-hr{border:none;border-top:1px solid #eee;margin:10px 0}
-.r-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
-.r-total{background:#f5f5f5;border-radius:8px;padding:11px;margin-top:10px;display:flex;justify-content:space-between;font-weight:700;font-size:15px}
-
-/* TOAST */
-.toast{position:fixed;top:76px;left:50%;transform:translateX(-50%) translateY(-16px);background:rgba(12,15,22,.97);border:1px solid var(--border2);color:var(--text);padding:9px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:500;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;backdrop-filter:blur(20px)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* EMPTY */
-.empty{text-align:center;padding:28px 14px;color:var(--muted)}
-.empty-ico{font-size:30px;margin-bottom:7px;opacity:.5}
-.empty-txt{font-size:13px}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PranaFlow Studio Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
+        
+        .fab {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.6);
+        }
+        
+        .fab-menu {
+            transform: scale(0);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .fab-menu.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .swipe-item {
+            transition: transform 0.3s ease;
+            touch-action: pan-y;
+        }
+        
+        .swipe-item.swiped-right {
+            transform: translateX(80px);
+        }
+        
+        .swipe-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .swipe-item.swiped-right .swipe-actions {
+            opacity: 1;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+        
+        .insight-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .overdue {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .status-paid {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+        
+        .status-pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+        }
+        
+        .type-yoga { border-left: 3px solid #f472b6; }
+        .type-breathwork { border-left: 3px solid #60a5fa; }
+        .type-sound { border-left: 3px solid #a78bfa; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 3px;
+        }
+        
+        .receipt-paper {
+            background: #fff;
+            color: #1e293b;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .zigzag-bottom {
+            background: linear-gradient(135deg, #fff 25%, transparent 25%) -10px 0,
+                        linear-gradient(225deg, #fff 25%, transparent 25%) -10px 0,
+                        linear-gradient(315deg, #fff 25%, transparent 25%),
+                        linear-gradient(45deg, #fff 25%, transparent 25%);
+            background-size: 20px 20px;
+            background-color: transparent;
+            height: 10px;
+            width: 100%;
+        }
+    </style>
 </head>
-<body>
+<body class="pb-24">
 
-<!-- HEADER -->
-<div class="hdr">
-  <div class="hdr-top">
-    <div class="logo">
-      <div class="logo-mark">S</div>
-      <div class="logo-text">
-        <h1>SPARK</h1>
-        <p>Wellness Studio</p>
-      </div>
-    </div>
-    <div class="hdr-btns">
-      <button class="icon-btn" onclick="exportCSV()" title="Export CSV">⬇</button>
-      <button class="icon-btn" onclick="resetData()" title="Reset data" style="font-size:12px">↺</button>
-    </div>
-  </div>
-  <div class="month-nav">
-    <button onclick="shiftMonth(-1)">‹</button>
-    <div class="month-label" id="monthLabel"></div>
-    <button onclick="shiftMonth(1)">›</button>
-  </div>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
-  <!-- METRICS -->
-  <div class="sec">
-    <div class="m-grid" id="metricsGrid"></div>
-  </div>
-
-  <!-- REVENUE BY PRACTITIONER -->
-  <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title">Revenue by Practitioner</div>
-      <div class="pills">
-        <button class="pill active" onclick="setPracTab('month',this)">Month</button>
-        <button class="pill" onclick="setPracTab('all',this)">All Time</button>
-      </div>
-    </div>
-    <div class="card"><div class="chart-wrap"><canvas id="pracChart"></canvas></div></div>
-  </div>
-
-  <!-- PAYOUT ENGINE -->
-  <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title">Payout Engine</div>
-      <button class="sec-action" onclick="markAllPaid()">Mark All Paid</button>
-    </div>
-    <div id="payoutEngine"></div>
-  </div>
-
-  <!-- UNPAID SESSIONS -->
-  <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title">Unpaid Sessions</div>
-      <span class="badge b-pending" id="unpaidBadge">0</span>
-    </div>
-    <div class="card" id="unpaidList"></div>
-  </div>
-
-  <!-- ANALYTICS -->
-  <div class="sec">
-    <div class="sec-hdr"><div class="sec-title">Analytics</div></div>
-    <div class="a-grid" id="aGrid"></div>
-    <div class="a-item full card" style="margin-top:0;border-radius:14px">
-      <div class="a-lbl">Revenue by Day of Week</div>
-      <div class="dow-wrap" id="dowBars"></div>
-    </div>
-  </div>
-
-  <!-- AI INSIGHTS -->
-  <div class="sec">
-    <div class="sec-hdr"><div class="sec-title">🧠 AI Insights</div></div>
-    <div id="insightsPanel"></div>
-  </div>
-
-</div>
-
-<!-- FAB -->
-<div class="fab-c">
-  <div class="fab-menu" id="fabMenu">
-    <div class="fab-opt" onclick="openM('addModal')">
-      <div class="fab-opt-lbl">Add Session</div>
-      <button class="fab-opt-btn add-btn">＋</button>
-    </div>
-    <div class="fab-opt" onclick="openM('payModal')">
-      <div class="fab-opt-lbl">Record Payment</div>
-      <button class="fab-opt-btn pay-btn">₭</button>
-    </div>
-  </div>
-  <button class="fab-main" id="fabMain" onclick="toggleFAB()">
-    <span class="fab-plus">＋</span>
-  </button>
-</div>
-
-<!-- ADD SESSION MODAL -->
-<div class="modal" id="addModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Add Session</div>
-    <div class="fr">
-      <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="f-date"></div>
-      <div class="fg"><label class="fl">Type</label>
-        <select class="fs" id="f-type" onchange="calcPrev()">
-          <option>Yoga</option><option>Breathwork</option><option>Sound Meditation</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg"><label class="fl">Session Name</label><input class="fi" type="text" id="f-name" placeholder="e.g. Morning Hatha Flow"></div>
-    <div class="fg"><label class="fl">Practitioner</label>
-      <input class="fi" type="text" id="f-prac" list="pracList" placeholder="Practitioner name">
-      <datalist id="pracList"></datalist>
-    </div>
-    <div class="fr">
-      <div class="fg"><label class="fl">Attendees</label><input class="fi" type="number" id="f-att" placeholder="0" min="0" oninput="calcPrev()"></div>
-      <div class="fg"><label class="fl">Price / Person (KES)</label><input class="fi" type="number" id="f-price" placeholder="999" min="0" oninput="calcPrev()"></div>
-    </div>
-    <div class="fr">
-      <div class="fg"><label class="fl">Studio % (e.g. 40)</label><input class="fi" type="number" id="f-spct" value="40" min="0" max="100" oninput="calcPrev()"></div>
-      <div class="fg"><label class="fl">Status</label>
-        <select class="fs" id="f-status"><option value="Pending">Pending</option><option value="Paid">Paid</option></select>
-      </div>
-    </div>
-    <div class="comm-prev">
-      <div><div class="cp-lbl">Total Rev</div><div class="cp-val" id="pv-total">KES 0</div></div>
-      <div><div class="cp-lbl">Studio</div><div class="cp-val" id="pv-studio">KES 0</div></div>
-      <div><div class="cp-lbl">Practitioner</div><div class="cp-val" id="pv-prac">KES 0</div></div>
-    </div>
-    <div class="fg" style="display:flex;align-items:center;gap:8px">
-      <input type="checkbox" id="f-pack" style="width:16px;height:16px;accent-color:var(--gold)">
-      <label for="f-pack" class="fl" style="margin:0;cursor:pointer">Pack Session (deferred revenue)</label>
-    </div>
-    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="submitSession()">Save Session</button>
-    <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeM('addModal')">Cancel</button>
-  </div>
-</div>
-
-<!-- RECORD PAYMENT MODAL -->
-<div class="modal" id="payModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Record Payment</div>
-    <div class="fg"><label class="fl">Practitioner</label>
-      <select class="fs" id="p-prac" onchange="updatePayBal()"></select>
-    </div>
-    <div class="fg"><label class="fl">Payment Method</label>
-      <select class="fs" id="p-method" onchange="document.getElementById('mpesaGrp').style.display=this.value==='M-Pesa'?'block':'none'">
-        <option value="Cash">Cash</option><option value="M-Pesa">M-Pesa</option>
-      </select>
-    </div>
-    <div class="fg" id="mpesaGrp" style="display:none"><label class="fl">M-Pesa Transaction ID</label><input class="fi" type="text" id="p-txid" placeholder="e.g. QDZ7XXXXXX"></div>
-    <div style="background:var(--gold-d);border:1px solid rgba(232,160,48,.2);border-radius:10px;padding:12px 13px;margin-bottom:15px">
-      <div class="cp-lbl">Outstanding Balance</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold);margin-top:3px" id="p-bal">KES 0</div>
-    </div>
-    <button class="btn btn-primary" style="width:100%" onclick="submitPayment()">Confirm &amp; Generate Receipt</button>
-    <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeM('payModal')">Cancel</button>
-  </div>
-</div>
-
-<!-- RECEIPT MODAL -->
-<div class="modal" id="rcptModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Payment Receipt</div>
-    <div id="rcptContent"></div>
-    <button class="btn btn-ghost" style="width:100%" onclick="closeM('rcptModal')">Close</button>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-// ──────────────────────────────────────────────
-//  SAMPLE DATA
-// ──────────────────────────────────────────────
-const DEFAULTS = [
-  {id:'s1',date:'2026-04-01',sessionName:'Morning Hatha Flow',practitioner:'Danny',type:'Yoga',attendees:9,pricePerPerson:999,totalRevenue:8991,studioRevenue:3596.40,practitionerRevenue:5394.60,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-04'},
-  {id:'s2',date:'2026-04-03',sessionName:'Breathwork Intensive',practitioner:'Amara',type:'Breathwork',attendees:6,pricePerPerson:1500,totalRevenue:9000,studioRevenue:3150,practitionerRevenue:5850,studioCommission:.35,practitionerCommission:.65,payoutTo:'Practitioner',status:'Pending',pack:false,month:'2026-04'},
-  {id:'s3',date:'2026-04-05',sessionName:'Sound Bath Journey',practitioner:'Zara',type:'Sound Meditation',attendees:12,pricePerPerson:1200,totalRevenue:14400,studioRevenue:5760,practitionerRevenue:8640,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-04'},
-  {id:'s4',date:'2026-04-08',sessionName:'Hatha Kriya Yoga',practitioner:'Danny',type:'Yoga',attendees:7,pricePerPerson:999,totalRevenue:6993,studioRevenue:2797.20,practitionerRevenue:4195.80,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Pending',pack:false,month:'2026-04'},
-  {id:'s5',date:'2026-04-10',sessionName:'Yin & Restore',practitioner:'Danny',type:'Yoga',attendees:5,pricePerPerson:999,totalRevenue:4995,studioRevenue:1998,practitionerRevenue:2997,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Pending',pack:false,month:'2026-04'},
-  {id:'s6',date:'2026-04-12',sessionName:'Morning Hatha Flow',practitioner:'Danny',type:'Yoga',attendees:11,pricePerPerson:999,totalRevenue:10989,studioRevenue:4395.60,practitionerRevenue:6593.40,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-04'},
-  {id:'s7',date:'2026-04-15',sessionName:'Lunar Breathwork',practitioner:'Amara',type:'Breathwork',attendees:8,pricePerPerson:1500,totalRevenue:12000,studioRevenue:4200,practitionerRevenue:7800,studioCommission:.35,practitionerCommission:.65,payoutTo:'Practitioner',status:'Pending',pack:false,month:'2026-04'},
-  {id:'s8',date:'2026-04-17',sessionName:'Crystal Sound Healing',practitioner:'Zara',type:'Sound Meditation',attendees:10,pricePerPerson:1200,totalRevenue:12000,studioRevenue:4800,practitionerRevenue:7200,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-04'},
-  {id:'s9',date:'2026-04-22',sessionName:'Hatha Kriya Yoga',practitioner:'Danny',type:'Yoga',attendees:4,pricePerPerson:999,totalRevenue:3996,studioRevenue:1598.40,practitionerRevenue:2397.60,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Pending',pack:false,month:'2026-04'},
-  {id:'s10',date:'2026-04-25',sessionName:'Deep Sound Immersion',practitioner:'Zara',type:'Sound Meditation',attendees:2,pricePerPerson:1200,totalRevenue:2400,studioRevenue:960,practitionerRevenue:1440,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Pending',pack:false,month:'2026-04'},
-  {id:'s11',date:'2026-03-05',sessionName:'Morning Hatha Flow',practitioner:'Danny',type:'Yoga',attendees:10,pricePerPerson:999,totalRevenue:9990,studioRevenue:3996,practitionerRevenue:5994,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-03'},
-  {id:'s12',date:'2026-03-12',sessionName:'Breathwork Circle',practitioner:'Amara',type:'Breathwork',attendees:9,pricePerPerson:1500,totalRevenue:13500,studioRevenue:4725,practitionerRevenue:8775,studioCommission:.35,practitionerCommission:.65,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-03'},
-  {id:'s13',date:'2026-03-19',sessionName:'Sound Bath',practitioner:'Zara',type:'Sound Meditation',attendees:8,pricePerPerson:1200,totalRevenue:9600,studioRevenue:3840,practitionerRevenue:5760,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-03'},
-  {id:'s14',date:'2026-03-26',sessionName:'Yin Yoga Deep Rest',practitioner:'Danny',type:'Yoga',attendees:12,pricePerPerson:999,totalRevenue:11988,studioRevenue:4795.20,practitionerRevenue:7192.80,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:false,month:'2026-03'},
-  {id:'s15',date:'2026-03-08',sessionName:'Pack – 5-Class Yoga',practitioner:'Danny',type:'Yoga',attendees:5,pricePerPerson:850,totalRevenue:4250,studioRevenue:1700,practitionerRevenue:2550,studioCommission:.40,practitionerCommission:.60,payoutTo:'Practitioner',status:'Paid',pack:true,month:'2026-03'},
-];
-
-// ──────────────────────────────────────────────
-//  STATE
-// ──────────────────────────────────────────────
-let sessions = [];
-let selMonth = '2026-04';
-let pracTab = 'month';
-let chartInst = null;
-let fabOpen = false;
-
-// ──────────────────────────────────────────────
-//  STORAGE
-// ──────────────────────────────────────────────
-function load() {
-  try {
-    const d = localStorage.getItem('spark_v2');
-    sessions = d ? JSON.parse(d) : [...DEFAULTS];
-  } catch(e) { sessions = [...DEFAULTS]; }
-}
-function save() {
-  try { localStorage.setItem('spark_v2', JSON.stringify(sessions)); } catch(e) {}
-}
-function resetData() {
-  if (!confirm('Reset to sample data?')) return;
-  sessions = [...DEFAULTS];
-  selMonth = '2026-04';
-  save(); render(); toast('Reset to sample data ✓');
-}
-
-// ──────────────────────────────────────────────
-//  HELPERS
-// ──────────────────────────────────────────────
-function fmt(n) {
-  if (n >= 1e6) return 'KES '+(n/1e6).toFixed(1)+'M';
-  if (n >= 1e3) return 'KES '+(n/1e3).toFixed(1)+'K';
-  return 'KES '+Math.round(n).toLocaleString();
-}
-function fmtFull(n) { return 'KES '+Math.round(n).toLocaleString(); }
-function monthName(m) {
-  if (!m) return '';
-  const [y,mo] = m.split('-');
-  return new Date(+y,+mo-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-}
-function months() { return [...new Set(sessions.map(s=>s.month))].sort().reverse(); }
-function filtered() { return sessions.filter(s=>s.month===selMonth); }
-function isOverdue(s) {
-  if (s.status!=='Pending') return false;
-  return (Date.now()-new Date(s.date).getTime())/864e5 > 7;
-}
-
-const PCOLORS = ['#e8a030','#20c9a0','#a78bfa','#60a5fa','#f472b6','#fb923c'];
-
-// ──────────────────────────────────────────────
-//  CALCULATIONS  (single source of truth)
-// ──────────────────────────────────────────────
-function calcMetrics(f) {
-  return {
-    totalRevenue: f.reduce((a,s)=>a+s.totalRevenue,0),
-    sessionsHeld: f.length,
-    studioIncome: f.reduce((a,s)=>a+s.studioRevenue,0),
-    outstanding:  f.filter(s=>s.status==='Pending').reduce((a,s)=>a+s.practitionerRevenue,0),
-    paidOut:      f.filter(s=>s.status==='Paid').reduce((a,s)=>a+s.practitionerRevenue,0),
-    packRevenue:  f.filter(s=>s.pack).reduce((a,s)=>a+s.totalRevenue,0),
-  };
-}
-
-function byPrac(arr) {
-  const map = {};
-  arr.forEach(s => {
-    if (!map[s.practitioner]) map[s.practitioner]={name:s.practitioner,total:0,studioRev:0,pracRev:0,pending:0,paid:0,sessions:0,types:new Set(),pendingDates:[]};
-    const p = map[s.practitioner];
-    p.total+=s.totalRevenue; p.studioRev+=s.studioRevenue; p.pracRev+=s.practitionerRevenue; p.sessions++;
-    p.types.add(s.type);
-    if(s.status==='Pending'){p.pending+=s.practitionerRevenue;p.pendingDates.push(s.date);}
-    else p.paid+=s.practitionerRevenue;
-  });
-  return Object.values(map).sort((a,b)=>b.total-a.total);
-}
-
-function calcAnalytics(f) {
-  const avgRevenue = f.length ? f.reduce((a,s)=>a+s.totalRevenue,0)/f.length : 0;
-  const avgAttendees = f.length ? f.reduce((a,s)=>a+s.attendees,0)/f.length : 0;
-  const typeMap = {};
-  f.forEach(s=>{ typeMap[s.type]=(typeMap[s.type]||0)+s.totalRevenue; });
-  const bestType = Object.entries(typeMap).sort((a,b)=>b[1]-a[1])[0];
-  const dow = {Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0,Sun:0};
-  const dLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  f.forEach(s=>{ const k=dLabels[new Date(s.date).getDay()]; if(dow[k]!==undefined)dow[k]+=s.totalRevenue; });
-  return {avgRevenue,avgAttendees,bestType,dow,totalAttendees:f.reduce((a,s)=>a+s.attendees,0)};
-}
-
-function getInsights(f) {
-  const ins = [];
-  if (!f.length) return [{type:'info',icon:'📭',title:'No Sessions',desc:'No data for this month yet. Add your first session to get started.'}];
-
-  const total = f.reduce((a,s)=>a+s.totalRevenue,0);
-  const grouped = byPrac(f);
-
-  // concentration risk
-  if (grouped.length > 0) {
-    const pct = total>0 ? (grouped[0].total/total)*100 : 0;
-    if (pct>40) ins.push({type:'warn',icon:'⚠️',title:'Revenue Concentration Risk',desc:`${grouped[0].name} accounts for ${pct.toFixed(0)}% of revenue. Diversify your practitioner roster.`});
-  }
-
-  // avg attendance
-  const avg = f.reduce((a,s)=>a+s.attendees,0)/f.length;
-  if (avg < 5) ins.push({type:'danger',icon:'📉',title:'Low Utilization',desc:`Avg attendance is ${avg.toFixed(1)}/session. Target 8+ for healthy margins.`});
-  else if (avg >= 9) ins.push({type:'success',icon:'🚀',title:'Strong Attendance',desc:`${avg.toFixed(1)} avg attendees/session. Excellent studio utilization!`});
-
-  // growth vs prev month
-  const ms = months(); const ci = ms.indexOf(selMonth);
-  if (ci < ms.length-1) {
-    const prev = sessions.filter(s=>s.month===ms[ci+1]).reduce((a,s)=>a+s.totalRevenue,0);
-    if (prev>0 && total>prev) {
-      const g = ((total-prev)/prev*100).toFixed(0);
-      ins.push({type:'success',icon:'📈',title:`+${g}% Revenue Growth`,desc:`Up from ${fmtFull(prev)} last month to ${fmtFull(total)} this month.`});
-    } else if (prev>0 && total<prev) {
-      const d = ((prev-total)/prev*100).toFixed(0);
-      ins.push({type:'danger',icon:'📊',title:`Revenue Down ${d}%`,desc:`Dropped from ${fmtFull(prev)} to ${fmtFull(total)}. Review session frequency or pricing.`});
-    }
-  }
-
-  // overdue
-  const od = f.filter(s=>isOverdue(s));
-  if (od.length) ins.push({type:'danger',icon:'🔔',title:`${od.length} Overdue Payout${od.length>1?'s':''}`,desc:`Payments pending >7 days. Settle promptly to maintain practitioner trust.`});
-
-  if (!ins.length) ins.push({type:'info',icon:'✅',title:'All Clear',desc:'No issues detected. Studio is running smoothly.'});
-  return ins;
-}
-
-// ──────────────────────────────────────────────
-//  RENDER
-// ──────────────────────────────────────────────
-function render() {
-  document.getElementById('monthLabel').textContent = monthName(selMonth);
-  const f = filtered();
-  renderMetrics(f);
-  renderPracChart();
-  renderPayouts(f);
-  renderUnpaid(f);
-  renderAnalytics(f);
-  renderInsights(f);
-  updatePracList();
-}
-
-function renderMetrics(f) {
-  const m = calcMetrics(f);
-  document.getElementById('metricsGrid').innerHTML = `
-    <div class="m-card wide gold">
-      <div class="m-label">💰 Total Revenue</div>
-      <div class="m-val">${fmt(m.totalRevenue)}</div>
-      <div class="m-sub">${m.sessionsHeld} sessions · ${fmtFull(m.totalRevenue/Math.max(m.sessionsHeld,1))} avg</div>
-    </div>
-    <div class="m-card teal">
-      <div class="m-label">🏛 Studio Income</div>
-      <div class="m-val sm">${fmt(m.studioIncome)}</div>
-      <div class="m-sub">After payouts</div>
-    </div>
-    <div class="m-card">
-      <div class="m-label">📅 Sessions</div>
-      <div class="m-val sm">${m.sessionsHeld}</div>
-      <div class="m-sub">This month</div>
-    </div>
-    <div class="m-card red">
-      <div class="m-label">⏳ Outstanding</div>
-      <div class="m-val sm">${fmt(m.outstanding)}</div>
-      <div class="m-sub">Pending payouts</div>
-    </div>
-    <div class="m-card green">
-      <div class="m-label">✅ Paid Out</div>
-      <div class="m-val sm">${fmt(m.paidOut)}</div>
-      <div class="m-sub">Practitioner payments</div>
-    </div>
-    ${m.packRevenue > 0 ? `
-    <div class="m-card purple" style="grid-column:span 2">
-      <div class="m-label">📦 Pack / Deferred Revenue</div>
-      <div class="m-val sm">${fmt(m.packRevenue)}</div>
-      <div class="m-sub">Track redemption separately</div>
-    </div>` : ''}
-  `;
-}
-
-function renderPracChart() {
-  const arr = pracTab==='month' ? filtered() : sessions;
-  const grouped = byPrac(arr);
-  const ctx = document.getElementById('pracChart').getContext('2d');
-  if (chartInst) chartInst.destroy();
-  chartInst = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: grouped.map(p=>p.name),
-      datasets: [{
-        data: grouped.map(p=>p.total),
-        backgroundColor: grouped.map((_,i)=>PCOLORS[i%PCOLORS.length]+'28'),
-        borderColor: grouped.map((_,i)=>PCOLORS[i%PCOLORS.length]),
-        borderWidth: 2,
-        borderRadius: 8,
-      },{
-        data: grouped.map(p=>p.studioRev),
-        label: 'Studio',
-        backgroundColor: grouped.map((_,i)=>PCOLORS[i%PCOLORS.length]+'18'),
-        borderColor: grouped.map((_,i)=>PCOLORS[i%PCOLORS.length]+'88'),
-        borderWidth: 1,
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {display:false},
-        tooltip: { callbacks: { label: ctx => 'KES '+ctx.raw.toLocaleString() } }
-      },
-      scales: {
-        x: { grid:{display:false}, ticks:{color:'#7a8394',font:{size:11,family:'DM Sans'}} },
-        y: { grid:{color:'rgba(255,255,255,.04)'}, ticks:{color:'#7a8394',font:{size:10},callback:v=>'K'+(v/1000).toFixed(0)} }
-      }
-    }
-  });
-}
-
-function renderPayouts(f) {
-  const grouped = byPrac(f);
-  const el = document.getElementById('payoutEngine');
-  if (!grouped.length) { el.innerHTML=`<div class="empty"><div class="empty-ico">💸</div><div class="empty-txt">No sessions this month</div></div>`; return; }
-
-  el.innerHTML = grouped.map((p,i) => {
-    const c = PCOLORS[i%PCOLORS.length];
-    const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const types = [...p.types].join(', ');
-    const od = f.filter(s=>s.practitioner===p.name&&isOverdue(s)).length;
-    const id = 'pc-'+p.name.replace(/\s+/g,'_');
-    return `
-      <div class="payout-card" id="${id}">
-        <div class="payout-hdr" onclick="togglePayout('${id}')">
-          <div class="avatar" style="background:${c}22;color:${c}">${ini}</div>
-          <div style="flex:1;min-width:0">
-            <div class="prac-name">${p.name}</div>
-            <div class="prac-sub">${types} · ${p.sessions} session${p.sessions>1?'s':''}</div>
-          </div>
-          <div class="prac-right" style="margin-right:4px">
-            ${od?`<span class="badge b-overdue">⏰ Overdue</span>`:''}
-            <div class="prac-pending-lbl ${p.pending>0?'has-p':'all-p'}" style="margin-top:${od?4:0}px">
-              ${p.pending>0 ? fmt(p.pending)+' due' : '✓ Settled'}
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-40 px-4 py-4 mb-4">
+        <div class="flex justify-between items-center mb-3">
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    PranaFlow Studio
+                </h1>
+                <p class="text-xs text-slate-400">Financial Dashboard</p>
             </div>
-          </div>
-          <div class="payout-exp">▼</div>
+            <button onclick="toggleSettings()" class="p-2 rounded-full hover:bg-slate-700 transition">
+                <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
         </div>
-        <div class="payout-body">
-          <div class="payout-stats">
-            <div><div class="ps-label">Earned</div><div class="ps-val" style="color:${c}">${fmt(p.pracRev)}</div></div>
-            <div><div class="ps-label">Pending</div><div class="ps-val" style="color:var(--gold)">${fmt(p.pending)}</div></div>
-            <div><div class="ps-label">Paid</div><div class="ps-val" style="color:var(--green)">${fmt(p.paid)}</div></div>
-          </div>
-          <div class="payout-actions">
-            ${p.pending>0
-              ? `<button class="btn btn-primary" onclick="markPracPaid('${p.name}')">✓ Mark Paid</button>`
-              : `<button class="btn btn-ghost" disabled>✓ All Paid</button>`}
-            <button class="btn btn-ghost" onclick="openReceipt('${p.name}')">🧾 Receipt</button>
-          </div>
+        
+        <!-- Month Filter -->
+        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" id="monthFilter">
+            <!-- Populated by JS -->
         </div>
-      </div>`;
-  }).join('');
-}
+    </header>
 
-function renderUnpaid(f) {
-  const unpaid = f.filter(s=>s.status==='Pending').sort((a,b)=>new Date(a.date)-new Date(b.date));
-  document.getElementById('unpaidBadge').textContent = unpaid.length;
-  const el = document.getElementById('unpaidList');
-  if (!unpaid.length) { el.innerHTML=`<div class="empty"><div class="empty-ico">🎉</div><div class="empty-txt">All sessions settled!</div></div>`; return; }
-
-  el.innerHTML = unpaid.map(s => {
-    const d = new Date(s.date);
-    const day = d.getDate(), mon = d.toLocaleDateString('en',{month:'short'});
-    const tc = s.type==='Yoga'?'b-yoga':s.type==='Breathwork'?'b-breathwork':'b-sound';
-    const od = isOverdue(s);
-    return `
-      <div class="sr" id="sr-${s.id}">
-        <div class="sr-bg sr-bg-r">✓ Mark Paid</div>
-        <div class="sr-bg sr-bg-l">✎ Edit</div>
-        <div class="sr-inner">
-          <div class="sr-date" style="${od?'border-color:rgba(255,107,107,.5)':''}">
-            <div class="sr-day">${day}</div><div class="sr-mon">${mon}</div>
-          </div>
-          <div class="sr-det">
-            <div class="sr-name">${s.sessionName}</div>
-            <div class="sr-meta">${s.practitioner} · <span class="badge ${tc}">${s.type}</span>${od?' · <span class="badge b-overdue">Overdue</span>':''}</div>
-          </div>
-          <div class="sr-amt">
-            <div class="sr-amt-val">${fmt(s.practitionerRevenue)}</div>
-            <div class="sr-att">${s.attendees} pax</div>
-          </div>
+    <!-- Main Content -->
+    <main class="px-4 space-y-4">
+        
+        <!-- AI Insights -->
+        <div id="aiInsights" class="space-y-2">
+            <!-- Dynamic insights -->
         </div>
-      </div>`;
-  }).join('');
 
-  unpaid.forEach(s => {
-    const row = document.getElementById('sr-'+s.id);
-    if (row) attachSwipe(row, ()=>markSessionPaid(s.id), ()=>toast('Edit coming soon'));
-  });
-}
+        <!-- Top Metrics Grid -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="metric-card rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">Total Revenue</p>
+                <p class="text-xl font-bold text-white" id="metricTotalRevenue">$0</p>
+                <p class="text-xs text-emerald-400 mt-1" id="metricRevenueTrend"></p>
+            </div>
+            <div class="metric-card rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">Sessions Held</p>
+                <p class="text-xl font-bold text-white" id="metricSessions">0</p>
+            </div>
+            <div class="metric-card rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">Studio Income</p>
+                <p class="text-xl font-bold text-indigo-400" id="metricStudioIncome">$0</p>
+            </div>
+            <div class="metric-card rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">Outstanding</p>
+                <p class="text-xl font-bold text-amber-400" id="metricOutstanding">$0</p>
+            </div>
+            <div class="metric-card rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">Paid Out</p>
+                <p class="text-xl font-bold text-emerald-400" id="metricPaidOut">$0</p>
+            </div>
+            <div class="metric-card rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">Net Profit</p>
+                <p class="text-xl font-bold text-purple-400" id="metricNetProfit">$0</p>
+            </div>
+        </div>
 
-function renderAnalytics(f) {
-  const a = calcAnalytics(f);
-  document.getElementById('aGrid').innerHTML = `
-    <div class="a-item">
-      <div class="a-lbl">Avg Rev / Session</div>
-      <div class="a-val">${fmt(a.avgRevenue)}</div>
-      <div class="a-sub">Per session average</div>
+        <!-- Charts Section -->
+        <div class="glass-card rounded-xl p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-sm">Revenue by Practitioner</h3>
+                <div class="flex gap-2 text-xs">
+                    <button onclick="setPractitionerView('month')" id="btnMonthView" class="px-3 py-1 rounded-full bg-indigo-600 text-white transition">This Month</button>
+                    <button onclick="setPractitionerView('all')" id="btnAllView" class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 transition">All Time</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="practitionerChart"></canvas>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-4">
+            <h3 class="font-semibold text-sm mb-4">Revenue by Day of Week</h3>
+            <div class="chart-container">
+                <canvas id="dayOfWeekChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Payout Engine -->
+        <div class="glass-card rounded-xl p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-sm">Practitioner Payouts</h3>
+                <span class="text-xs text-slate-400" id="payoutCount"></span>
+            </div>
+            <div id="payoutList" class="space-y-3">
+                <!-- Dynamic -->
+            </div>
+        </div>
+
+        <!-- Unpaid Sessions -->
+        <div class="glass-card rounded-xl p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-sm text-amber-400">Pending Payments</h3>
+                <button onclick="markAllPaid()" class="text-xs bg-emerald-600 px-3 py-1 rounded-full text-white">
+                    Mark All Paid
+                </button>
+            </div>
+            <div id="unpaidList" class="space-y-2">
+                <!-- Dynamic -->
+            </div>
+        </div>
+
+        <!-- Session Performance -->
+        <div class="glass-card rounded-xl p-4">
+            <h3 class="font-semibold text-sm mb-4">Session Performance</h3>
+            <div class="space-y-3" id="performanceStats">
+                <!-- Dynamic -->
+            </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        <div class="glass-card rounded-xl p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-sm">Recent Sessions</h3>
+                <button onclick="exportCSV()" class="text-xs text-indigo-400 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Export CSV
+                </button>
+            </div>
+            <div id="sessionsList" class="space-y-2">
+                <!-- Dynamic -->
+            </div>
+        </div>
+
+        <!-- Pack Revenue -->
+        <div class="glass-card rounded-xl p-4">
+            <h3 class="font-semibold text-sm mb-2">Deferred Revenue (Packs)</h3>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-400">Unredeemed Pack Value</span>
+                <span class="text-lg font-bold text-pink-400" id="packRevenue">$0</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <div id="fabMenu" class="fab-menu absolute bottom-16 right-0 flex flex-col gap-3 mb-2">
+            <button onclick="openModal('paymentModal')" class="bg-slate-800 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm border border-slate-700 hover:bg-slate-700 transition whitespace-nowrap">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                Record Payment
+            </button>
+            <button onclick="openModal('sessionModal')" class="bg-slate-800 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm border border-slate-700 hover:bg-slate-700 transition whitespace-nowrap">
+                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                Add Session
+            </button>
+        </div>
+        <button onclick="toggleFab()" id="fabBtn" class="fab w-14 h-14 rounded-full flex items-center justify-center text-white">
+            <svg class="w-6 h-6 transition-transform duration-300" id="fabIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+        </button>
     </div>
-    <div class="a-item">
-      <div class="a-lbl">Avg Attendance</div>
-      <div class="a-val">${a.avgAttendees.toFixed(1)}</div>
-      <div class="a-sub">Per session</div>
+
+    <!-- Add Session Modal -->
+    <div id="sessionModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('sessionModal')"></div>
+        <div class="absolute bottom-0 left-0 right-0 glass-modal rounded-t-3xl p-6 slide-up max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Add New Session</h2>
+                <button onclick="closeModal('sessionModal')" class="p-2 hover:bg-slate-800 rounded-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="sessionForm" class="space-y-4" onsubmit="saveSession(event)">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Session Name</label>
+                    <input type="text" name="sessionName" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g., Morning Vinyasa Flow">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Date</label>
+                        <input type="date" name="date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Type</label>
+                        <select name="type" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500">
+                            <option value="Yoga">Yoga</option>
+                            <option value="Breathwork">Breathwork</option>
+                            <option value="Sound Meditation">Sound Meditation</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Practitioner</label>
+                    <select name="practitioner" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" id="practitionerSelect">
+                        <option value="">Select practitioner...</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Attendees</label>
+                        <input type="number" name="attendees" min="1" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" onchange="calculateSessionRevenue()">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Price per Person ($)</label>
+                        <input type="number" name="pricePerPerson" min="0" step="0.01" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" onchange="calculateSessionRevenue()">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Studio Commission (%)</label>
+                        <input type="number" name="studioCommission" min="0" max="100" value="30" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" onchange="calculateSessionRevenue()">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Total Revenue</label>
+                        <input type="number" name="totalRevenue" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-slate-400">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Studio Revenue</label>
+                        <input type="number" name="studioRevenue" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-indigo-400 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Practitioner Revenue</label>
+                        <input type="number" name="practitionerRevenue" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-sm text-emerald-400 font-semibold">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
+                    <input type="checkbox" name="pack" id="packCheck" class="w-4 h-4 rounded border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-slate-700">
+                    <label for="packCheck" class="text-sm">This is a pack session (deferred revenue)</label>
+                </div>
+                
+                <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
+                    <input type="checkbox" name="status" id="statusCheck" class="w-4 h-4 rounded border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-slate-700">
+                    <label for="statusCheck" class="text-sm">Mark as Paid to practitioner</label>
+                </div>
+                
+                <div id="validationErrors" class="hidden text-red-400 text-xs"></div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition transform active:scale-95">
+                    Save Session
+                </button>
+            </form>
+        </div>
     </div>
-    <div class="a-item">
-      <div class="a-lbl">Top Session Type</div>
-      <div class="a-val" style="font-size:16px;line-height:1.3">${a.bestType?a.bestType[0]:'–'}</div>
-      <div class="a-sub">${a.bestType?fmtFull(a.bestType[1]):'–'}</div>
+
+    <!-- Record Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('paymentModal')"></div>
+        <div class="absolute bottom-0 left-0 right-0 glass-modal rounded-t-3xl p-6 slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Record Payment</h2>
+                <button onclick="closeModal('paymentModal')" class="p-2 hover:bg-slate-800 rounded-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="paymentForm" class="space-y-4" onsubmit="savePayment(event)">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Practitioner</label>
+                    <select name="practitioner" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" onchange="loadPendingSessions()">
+                        <option value="">Select practitioner...</option>
+                    </select>
+                </div>
+                
+                <div id="pendingSessionsList" class="space-y-2 max-h-48 overflow-y-auto">
+                    <!-- Dynamic -->
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Payment Method</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="selectPaymentMethod('Cash')" class="payment-method-btn py-3 rounded-lg border border-slate-700 text-sm hover:bg-slate-800 transition bg-slate-800 text-indigo-400 border-indigo-500" data-method="Cash">
+                            Cash
+                        </button>
+                        <button type="button" onclick="selectPaymentMethod('M-Pesa')" class="payment-method-btn py-3 rounded-lg border border-slate-700 text-sm hover:bg-slate-800 transition text-slate-400" data-method="M-Pesa">
+                            M-Pesa
+                        </button>
+                        <button type="button" onclick="selectPaymentMethod('Bank')" class="payment-method-btn py-3 rounded-lg border border-slate-700 text-sm hover:bg-slate-800 transition text-slate-400" data-method="Bank">
+                            Bank
+                        </button>
+                    </div>
+                    <input type="hidden" name="paymentMethod" value="Cash">
+                </div>
+                
+                <div id="mpesaField" class="hidden">
+                    <label class="block text-xs text-slate-400 mb-1">M-Pesa Transaction ID</label>
+                    <input type="text" name="transactionId" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g., QK7X9M2P">
+                </div>
+                
+                <div class="p-4 bg-slate-800/50 rounded-lg">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-400">Total to Pay:</span>
+                        <span class="font-bold text-emerald-400" id="paymentTotal">$0</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition transform active:scale-95">
+                    Confirm Payment & Generate Receipt
+                </button>
+            </form>
+        </div>
     </div>
-    <div class="a-item">
-      <div class="a-lbl">Total Attendees</div>
-      <div class="a-val">${a.totalAttendees}</div>
-      <div class="a-sub">This month</div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('receiptModal')"></div>
+        <div class="relative bg-white rounded-lg max-w-sm w-full overflow-hidden shadow-2xl transform scale-100 transition-transform">
+            <div class="receipt-paper p-6">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-slate-800">PranaFlow Studio</h3>
+                    <p class="text-xs text-slate-500 mt-1">Payment Receipt</p>
+                </div>
+                
+                <div class="border-b-2 border-dashed border-slate-300 pb-4 mb-4">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-600">Practitioner:</span>
+                        <span class="font-semibold text-slate-800" id="receiptPractitioner"></span>
+                    </div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-600">Date:</span>
+                        <span class="font-semibold text-slate-800" id="receiptDate"></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Method:</span>
+                        <span class="font-semibold text-slate-800" id="receiptMethod"></span>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4" id="receiptSessions">
+                    <!-- Dynamic -->
+                </div>
+                
+                <div class="border-t-2 border-dashed border-slate-300 pt-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-slate-800">Total Paid:</span>
+                        <span class="text-2xl font-bold text-emerald-600" id="receiptTotal"></span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-slate-400">Thank you for your service</p>
+                    <div class="mt-2 inline-block px-3 py-1 bg-slate-100 rounded text-xs text-slate-600">Official Receipt</div>
+                </div>
+            </div>
+            <div class="zigzag-bottom"></div>
+            
+            <div class="bg-slate-50 p-4 flex gap-3">
+                <button onclick="closeModal('receiptModal')" class="flex-1 py-3 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 transition">
+                    Close
+                </button>
+                <button onclick="downloadReceipt()" class="flex-1 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download
+                </button>
+            </div>
+        </div>
     </div>
-  `;
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const vals=days.map(d=>a.dow[d]||0);
-  const max=Math.max(...vals,1);
-  document.getElementById('dowBars').innerHTML = days.map((d,i)=>`
-    <div class="dow-col">
-      <div class="dow-track"><div class="dow-fill" style="height:${(vals[i]/max*100).toFixed(0)}%"></div></div>
-      <div class="dow-lbl">${d}</div>
-    </div>`).join('');
-}
 
-function renderInsights(f) {
-  document.getElementById('insightsPanel').innerHTML = getInsights(f).map(i=>`
-    <div class="insight ${i.type}">
-      <div class="insight-icon">${i.icon}</div>
-      <div><div class="insight-title">${i.title}</div><div class="insight-desc">${i.desc}</div></div>
-    </div>`).join('');
-}
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('settingsModal')"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-80 glass-modal p-6 slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Settings</h2>
+                <button onclick="closeModal('settingsModal')" class="p-2 hover:bg-slate-800 rounded-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-2">Practitioners</label>
+                    <div id="practitionersList" class="space-y-2 mb-3">
+                        <!-- Dynamic -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="newPractitioner" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm" placeholder="Add new...">
+                        <button onclick="addPractitioner()" class="px-4 py-2 bg-indigo-600 rounded-lg text-sm hover:bg-indigo-700 transition">Add</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-slate-400 mb-2">Studio Expenses (Monthly)</label>
+                    <input type="number" id="monthlyExpenses" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm" placeholder="0.00" onchange="updateExpenses()">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-slate-400 mb-2">Data Management</label>
+                    <button onclick="exportAllData()" class="w-full mb-2 py-3 rounded-lg border border-slate-700 text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Export All Data
+                    </button>
+                    <label class="w-full py-3 rounded-lg border border-slate-700 text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Import Data
+                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
+                    </label>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-700">
+                    <button onclick="clearAllData()" class="w-full py-3 rounded-lg bg-red-600/20 text-red-400 text-sm hover:bg-red-600/30 transition">
+                        Clear All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-// ──────────────────────────────────────────────
-//  ACTIONS
-// ──────────────────────────────────────────────
-function setPracTab(tab, btn) {
-  pracTab = tab;
-  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  renderPracChart();
-}
+    <!-- Session Detail Modal -->
+    <div id="detailModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('detailModal')"></div>
+        <div class="absolute bottom-0 left-0 right-0 glass-modal rounded-t-3xl p-6 slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Session Details</h2>
+                <button onclick="closeModal('detailModal')" class="p-2 hover:bg-slate-800 rounded-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="detailContent" class="space-y-4">
+                <!-- Dynamic -->
+            </div>
+        </div>
+    </div>
 
-function togglePayout(id) { document.getElementById(id).classList.toggle('expanded'); }
+    <script>
+        // Data Store
+        let sessions = [];
+        let practitioners = ['Sarah Chen', 'Mike Ross', 'Emma Wilson', 'David Park'];
+        let monthlyExpenses = 0;
+        let currentMonth = new Date().toISOString().slice(0, 7);
+        let practitionerViewMode = 'month';
+        let currentReceipt = null;
+        
+        // Charts
+        let practitionerChart = null;
+        let dayOfWeekChart = null;
 
-function markPracPaid(name) {
-  sessions = sessions.map(s => s.practitioner===name && s.month===selMonth && s.status==='Pending' ? {...s,status:'Paid'} : s);
-  save(); render(); toast(`${name} marked as paid ✓`);
-}
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initMonthFilter();
+            updatePractitionerSelects();
+            renderAll();
+            
+            // Set today's date in form
+            document.querySelector('input[name="date"]').valueAsDate = new Date();
+        });
 
-function markSessionPaid(id) {
-  sessions = sessions.map(s => s.id===id ? {...s,status:'Paid'} : s);
-  save(); render(); toast('Session marked as paid ✓');
-}
+        // Data Management
+        function loadData() {
+            const saved = localStorage.getItem('pranaflow_data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                sessions = data.sessions || [];
+                practitioners = data.practitioners || practitioners;
+                monthlyExpenses = data.monthlyExpenses || 0;
+                document.getElementById('monthlyExpenses').value = monthlyExpenses;
+            }
+            
+            // Load sample data if empty
+            if (sessions.length === 0) {
+                loadSampleData();
+            }
+        }
 
-function markAllPaid() {
-  const pending = filtered().filter(s=>s.status==='Pending');
-  if (!pending.length) { toast('No pending sessions'); return; }
-  if (!confirm(`Mark all ${pending.length} pending sessions as paid?`)) return;
-  sessions = sessions.map(s => s.month===selMonth && s.status==='Pending' ? {...s,status:'Paid'} : s);
-  save(); render(); toast('All sessions marked as paid ✓');
-}
+        function saveData() {
+            const data = {
+                sessions,
+                practitioners,
+                monthlyExpenses,
+                lastSaved: new Date().toISOString()
+            };
+            localStorage.setItem('pranaflow_data', JSON.stringify(data));
+        }
 
-function shiftMonth(dir) {
-  const ms = months();
-  const i = ms.indexOf(selMonth);
-  const ni = i + dir;
-  if (ni>=0 && ni<ms.length) { selMonth=ms[ni]; render(); }
-  else toast(dir<0?'No older data':'No newer data');
-}
+        function loadSampleData() {
+            const today = new Date();
+            const sampleSessions = [
+                {
+                    id: '1',
+                    date: today.toISOString().slice(0, 10),
+                    sessionName: 'Morning Vinyasa',
+                    practitioner: 'Sarah Chen',
+                    type: 'Yoga',
+                    attendees: 8,
+                    pricePerPerson: 25,
+                    totalRevenue: 200,
+                    studioRevenue: 80,
+                    practitionerRevenue: 120,
+                    studioCommission: 40,
+                    practitionerCommission: 60,
+                    payoutTo: 'Practitioner',
+                    status: 'Paid',
+                    pack: false,
+                    month: today.toISOString().slice(0, 7)
+                },
+                {
+                    id: '2',
+                    date: new Date(today.getTime() - 86400000).toISOString().slice(0, 10),
+                    sessionName: 'Breathwork Journey',
+                    practitioner: 'Mike Ross',
+                    type: 'Breathwork',
+                    attendees: 12,
+                    pricePerPerson: 30,
+                    totalRevenue: 360,
+                    studioRevenue: 144,
+                    practitionerRevenue: 216,
+                    studioCommission: 40,
+                    practitionerCommission: 60,
+                    payoutTo: 'Practitioner',
+                    status: 'Pending',
+                    pack: false,
+                    month: today.toISOString().slice(0, 7)
+                },
+                {
+                    id: '3',
+                    date: new Date(today.getTime() - 172800000).toISOString().slice(0, 10),
+                    sessionName: 'Sound Bath Meditation',
+                    practitioner: 'Emma Wilson',
+                    type: 'Sound Meditation',
+                    attendees: 15,
+                    pricePerPerson: 35,
+                    totalRevenue: 525,
+                    studioRevenue: 210,
+                    practitionerRevenue: 315,
+                    studioCommission: 40,
+                    practitionerCommission: 60,
+                    payoutTo: 'Practitioner',
+                    status: 'Pending',
+                    pack: false,
+                    month: today.toISOString().slice(0, 7),
+                    createdAt: new Date(today.getTime() - 172800000).toISOString()
+                }
+            ];
+            sessions = sampleSessions;
+            saveData();
+        }
 
-// ──────────────────────────────────────────────
-//  ADD SESSION
-// ──────────────────────────────────────────────
-function calcPrev() {
-  const att=parseFloat(document.getElementById('f-att').value)||0;
-  const price=parseFloat(document.getElementById('f-price').value)||0;
-  const spct=parseFloat(document.getElementById('f-spct').value)||40;
-  const total=att*price, studio=total*(spct/100), prac=total-studio;
-  document.getElementById('pv-total').textContent=fmtFull(total);
-  document.getElementById('pv-studio').textContent=fmtFull(studio);
-  document.getElementById('pv-prac').textContent=fmtFull(prac);
-}
+        // Month Filter
+        function initMonthFilter() {
+            const months = [];
+            const today = new Date();
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                months.push(d.toISOString().slice(0, 7));
+            }
+            
+            const container = document.getElementById('monthFilter');
+            container.innerHTML = months.map(m => `
+                <button onclick="selectMonth('${m}')" 
+                    class="px-4 py-2 rounded-full text-sm whitespace-nowrap transition ${m === currentMonth ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}">
+                    ${formatMonth(m)}
+                </button>
+            `).join('');
+        }
 
-function submitSession() {
-  const date=document.getElementById('f-date').value;
-  const type=document.getElementById('f-type').value;
-  const name=document.getElementById('f-name').value.trim();
-  const prac=document.getElementById('f-prac').value.trim();
-  const att=parseInt(document.getElementById('f-att').value);
-  const price=parseFloat(document.getElementById('f-price').value);
-  const spct=parseFloat(document.getElementById('f-spct').value)||40;
-  const status=document.getElementById('f-status').value;
-  const pack=document.getElementById('f-pack').checked;
+        function selectMonth(month) {
+            currentMonth = month;
+            initMonthFilter();
+            renderAll();
+        }
 
-  if (!date||!name||!prac||!att||!price) { toast('Fill all required fields'); return; }
+        function formatMonth(monthStr) {
+            const [year, month] = monthStr.split('-');
+            const date = new Date(year, month - 1);
+            return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        }
 
-  const total=att*price, studioRev=total*(spct/100), pracRev=total-studioRev;
-  const month=date.slice(0,7);
+        // Core Calculations
+        function getMonthSessions() {
+            return sessions.filter(s => s.month === currentMonth);
+        }
 
-  sessions.push({
-    id:'s'+Date.now(), date, sessionName:name, practitioner:prac, type,
-    attendees:att, pricePerPerson:price, totalRevenue:total,
-    studioRevenue:studioRev, practitionerRevenue:pracRev,
-    studioCommission:spct/100, practitionerCommission:(100-spct)/100,
-    payoutTo:'Practitioner', status, pack, month
-  });
+        function calculateMetrics() {
+            const monthSessions = getMonthSessions();
+            
+            const totalRevenue = monthSessions.reduce((sum, s) => sum + s.totalRevenue, 0);
+            const sessionsHeld = monthSessions.length;
+            const studioIncome = monthSessions.reduce((sum, s) => sum + s.studioRevenue, 0);
+            const outstanding = monthSessions
+                .filter(s => s.status === 'Pending')
+                .reduce((sum, s) => sum + s.practitionerRevenue, 0);
+            const paidOut = monthSessions
+                .filter(s => s.status === 'Paid')
+                .reduce((sum, s) => sum + s.practitionerRevenue, 0);
+            const netProfit = studioIncome - monthlyExpenses;
+            
+            // Pack revenue (unredeemed)
+            const packRevenue = sessions
+                .filter(s => s.pack && s.month === currentMonth)
+                .reduce((sum, s) => sum + s.totalRevenue, 0);
+            
+            return {
+                totalRevenue,
+                sessionsHeld,
+                studioIncome,
+                outstanding,
+                paidOut,
+                netProfit,
+                packRevenue
+            };
+        }
 
-  selMonth=month;
-  save(); closeM('addModal'); render(); toast('Session added ✓');
-}
+        function getPractitionerStats() {
+            const data = practitionerViewMode === 'month' ? getMonthSessions() : sessions;
+            const stats = {};
+            
+            practitioners.forEach(p => {
+                const practitionerSessions = data.filter(s => s.practitioner === p);
+                stats[p] = {
+                    totalRevenue: practitionerSessions.reduce((sum, s) => sum + s.totalRevenue, 0),
+                    sessions: practitionerSessions.length,
+                    pending: practitionerSessions
+                        .filter(s => s.status === 'Pending')
+                        .reduce((sum, s) => sum + s.practitionerRevenue, 0),
+                    paid: practitionerSessions
+                        .filter(s => s.status === 'Paid')
+                        .reduce((sum, s) => sum + s.practitionerRevenue, 0)
+                };
+            });
+            
+            return stats;
+        }
 
-// ──────────────────────────────────────────────
-//  RECEIPT
-// ──────────────────────────────────────────────
-function openReceipt(name) {
-  const f = filtered();
-  const paid = f.filter(s=>s.practitioner===name&&s.status==='Paid');
-  const pend = f.filter(s=>s.practitioner===name&&s.status==='Pending');
-  const all  = [...paid,...pend];
-  if (!all.length) { toast('No sessions for this practitioner'); return; }
+        function getDayOfWeekStats() {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const stats = days.map(() => 0);
+            
+            getMonthSessions().forEach(s => {
+                const day = new Date(s.date).getDay();
+                stats[day] += s.totalRevenue;
+            });
+            
+            return { labels: days, data: stats };
+        }
 
-  const totalPaid = paid.reduce((a,s)=>a+s.practitionerRevenue,0);
-  const totalPend = pend.reduce((a,s)=>a+s.practitionerRevenue,0);
+        function getPerformanceStats() {
+            const monthSessions = getMonthSessions();
+            if (monthSessions.length === 0) return null;
+            
+            const avgRevenue = monthSessions.reduce((sum, s) => sum + s.totalRevenue, 0) / monthSessions.length;
+            const typeStats = {};
+            
+            monthSessions.forEach(s => {
+                if (!typeStats[s.type]) typeStats[s.type] = { revenue: 0, count: 0 };
+                typeStats[s.type].revenue += s.totalRevenue;
+                typeStats[s.type].count += 1;
+            });
+            
+            const bestType = Object.entries(typeStats)
+                .sort((a, b) => b[1].revenue - a[1].revenue)[0];
+            
+            const avgAttendance = monthSessions.reduce((sum, s) => sum + s.attendees, 0) / monthSessions.length;
+            
+            return { avgRevenue, bestType, avgAttendance, typeStats };
+        }
 
-  document.getElementById('rcptContent').innerHTML = `
-    <div class="receipt-body">
-      <div class="r-brand">SPARK</div>
-      <div class="r-sub">Wellness Studio · Jaffery Sports Club, Lavington, Nairobi · Payment Receipt</div>
-      <hr class="r-hr">
-      <div class="r-row"><span>Practitioner</span><strong>${name}</strong></div>
-      <div class="r-row"><span>Period</span><strong>${monthName(selMonth)}</strong></div>
-      <div class="r-row"><span>Sessions</span><strong>${all.length}</strong></div>
-      <hr class="r-hr">
-      ${paid.map(s=>`<div class="r-row"><span>${s.date} – ${s.sessionName} (${s.attendees} pax)</span><strong>KES ${Math.round(s.practitionerRevenue).toLocaleString()}</strong></div>`).join('')}
-      ${pend.length?`<hr class="r-hr"><div class="r-row" style="color:#999"><span><em>Pending</em></span></div>`:''}
-      ${pend.map(s=>`<div class="r-row" style="color:#999"><span>${s.date} – ${s.sessionName}</span><span>KES ${Math.round(s.practitionerRevenue).toLocaleString()}</span></div>`).join('')}
-      <div class="r-total"><span>Total Paid</span><span>KES ${Math.round(totalPaid).toLocaleString()}</span></div>
-      ${totalPend>0?`<div style="text-align:right;font-size:11px;color:#999;margin-top:5px">Pending: KES ${Math.round(totalPend).toLocaleString()}</div>`:''}
-      <div style="text-align:center;font-size:10px;color:#aaa;margin-top:14px;border-top:1px solid #eee;padding-top:10px">
-        Generated on ${new Date().toLocaleDateString('en-KE',{dateStyle:'full'})}
-      </div>
-    </div>`;
-  openM('rcptModal');
-}
+        // AI Insights Engine
+        function generateInsights() {
+            const metrics = calculateMetrics();
+            const stats = getPerformanceStats();
+            const practitionerStats = getPractitionerStats();
+            const insights = [];
+            
+            // Revenue concentration risk
+            const totalRev = metrics.totalRevenue;
+            Object.entries(practitionerStats).forEach(([name, stat]) => {
+                if (totalRev > 0 && stat.totalRevenue / totalRev > 0.4) {
+                    insights.push({
+                        type: 'warning',
+                        icon: '⚠️',
+                        message: `Revenue concentration risk: ${name} generates ${Math.round(stat.totalRevenue/totalRev*100)}% of revenue`,
+                        color: 'amber'
+                    });
+                }
+            });
+            
+            // Low utilization
+            if (stats && stats.avgAttendance < 5) {
+                insights.push({
+                    type: 'warning',
+                    icon: '📉',
+                    message: `Low session utilization: Avg ${stats.avgAttendance.toFixed(1)} attendees per session`,
+                    color: 'amber'
+                });
+            }
+            
+            // Growth trend (compare to previous month)
+            const prevMonth = getPreviousMonth();
+            const prevSessions = sessions.filter(s => s.month === prevMonth);
+            const prevRevenue = prevSessions.reduce((sum, s) => sum + s.totalRevenue, 0);
+            
+            if (prevRevenue > 0) {
+                const growth = ((metrics.totalRevenue - prevRevenue) / prevRevenue) * 100;
+                if (growth > 10) {
+                    insights.push({
+                        type: 'success',
+                        icon: '📈',
+                        message: `Growth trend detected: +${growth.toFixed(0)}% vs last month`,
+                        color: 'emerald'
+                    });
+                } else if (growth < -10) {
+                    insights.push({
+                        type: 'danger',
+                        icon: '🔻',
+                        message: `Revenue decline: ${growth.toFixed(0)}% vs last month`,
+                        color: 'red'
+                    });
+                }
+            }
+            
+            // Outstanding payments alert
+            if (metrics.outstanding > metrics.studioIncome * 0.3) {
+                insights.push({
+                    type: 'warning',
+                    icon: '💸',
+                    message: `High outstanding payouts: $${metrics.outstanding.toFixed(0)} pending`,
+                    color: 'amber'
+                });
+            }
+            
+            // Best performer
+            const bestPractitioner = Object.entries(practitionerStats)
+                .sort((a, b) => b[1].totalRevenue - a[1].totalRevenue)[0];
+            if (bestPractitioner && bestPractitioner[1].totalRevenue > 0) {
+                insights.push({
+                    type: 'info',
+                    icon: '⭐',
+                    message: `Top performer: ${bestPractitioner[0]} ($${bestPractitioner[1].totalRevenue.toFixed(0)})`,
+                    color: 'indigo'
+                });
+            }
+            
+            return insights;
+        }
 
-// ──────────────────────────────────────────────
-//  RECORD PAYMENT MODAL
-// ──────────────────────────────────────────────
-function initPayModal() {
-  const f = filtered();
-  const pracs = [...new Set(f.filter(s=>s.status==='Pending').map(s=>s.practitioner))];
-  const sel = document.getElementById('p-prac');
-  sel.innerHTML = pracs.length ? pracs.map(p=>`<option value="${p}">${p}</option>`).join('') : '<option value="">No pending payouts</option>';
-  updatePayBal();
-}
+        function getPreviousMonth() {
+            const [year, month] = currentMonth.split('-').map(Number);
+            const date = new Date(year, month - 2);
+            return date.toISOString().slice(0, 7);
+        }
 
-function updatePayBal() {
-  const name = document.getElementById('p-prac').value;
-  const bal = filtered().filter(s=>s.practitioner===name&&s.status==='Pending').reduce((a,s)=>a+s.practitionerRevenue,0);
-  document.getElementById('p-bal').textContent = fmtFull(bal);
-}
+        // Rendering
+        function renderAll() {
+            renderMetrics();
+            renderInsights();
+            renderCharts();
+            renderPayouts();
+            renderUnpaidSessions();
+            renderPerformance();
+            renderSessionsList();
+            renderPackRevenue();
+        }
 
-function submitPayment() {
-  const name = document.getElementById('p-prac').value;
-  if (!name) { toast('Select a practitioner'); return; }
-  markPracPaid(name);
-  openReceipt(name);
-}
+        function renderMetrics() {
+            const m = calculateMetrics();
+            
+            document.getElementById('metricTotalRevenue').textContent = `$${m.totalRevenue.toLocaleString()}`;
+            document.getElementById('metricSessions').textContent = m.sessionsHeld;
+            document.getElementById('metricStudioIncome').textContent = `$${m.studioIncome.toLocaleString()}`;
+            document.getElementById('metricOutstanding').textContent = `$${m.outstanding.toLocaleString()}`;
+            document.getElementById('metricPaidOut').textContent = `$${m.paidOut.toLocaleString()}`;
+            document.getElementById('metricNetProfit').textContent = `$${m.netProfit.toLocaleString()}`;
+            
+            // Trend indicator
+            const prevMonth = getPreviousMonth();
+            const prevSessions = sessions.filter(s => s.month === prevMonth);
+            const prevRevenue = prevSessions.reduce((sum, s) => sum + s.totalRevenue, 0);
+            if (prevRevenue > 0) {
+                const growth = ((m.totalRevenue - prevRevenue) / prevRevenue * 100).toFixed(0);
+                const trendEl = document.getElementById('metricRevenueTrend');
+                trendEl.textContent = growth > 0 ? `↑ ${growth}% vs last month` : `↓ ${growth}% vs last month`;
+                trendEl.className = `text-xs mt-1 ${growth > 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            }
+        }
 
-// ──────────────────────────────────────────────
-//  CSV EXPORT
-// ──────────────────────────────────────────────
-function exportCSV() {
-  const f = filtered();
-  if (!f.length) { toast('No sessions to export'); return; }
-  const h = ['Date','Session','Practitioner','Type','Attendees','Price/Person','Total Revenue','Studio Revenue','Practitioner Revenue','Studio %','Status','Pack'];
-  const rows = f.map(s=>[s.date,`"${s.sessionName}"`,s.practitioner,s.type,s.attendees,s.pricePerPerson,s.totalRevenue,s.studioRevenue.toFixed(2),s.practitionerRevenue.toFixed(2),(s.studioCommission*100).toFixed(0)+'%',s.status,s.pack?'Yes':'No']);
-  const csv = [h,...rows].map(r=>r.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download = `SPARK_${selMonth}.csv`;
-  a.click();
-  toast('CSV exported ✓');
-}
+        function renderInsights() {
+            const insights = generateInsights();
+            const container = document.getElementById('aiInsights');
+            
+            if (insights.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = insights.map(i => `
+                <div class="glass-card rounded-lg p-3 flex items-start gap-3 border-l-4 ${i.color === 'amber' ? 'border-amber-500' : i.color === 'emerald' ? 'border-emerald-500' : i.color === 'red' ? 'border-red-500' : 'border-indigo-500'}">
+                    <span class="text-lg">${i.icon}</span>
+                    <p class="text-sm ${i.color === 'amber' ? 'text-amber-200' : i.color === 'emerald' ? 'text-emerald-200' : i.color === 'red' ? 'text-red-200' : 'text-indigo-200'}">${i.message}</p>
+                </div>
+            `).join('');
+        }
 
-// ──────────────────────────────────────────────
-//  SWIPE GESTURES
-// ──────────────────────────────────────────────
-function attachSwipe(el, onRight, onLeft) {
-  const inner = el.querySelector('.sr-inner');
-  let sx=0, cx=0, drag=false;
-  const thresh = 75;
-  el.addEventListener('touchstart', e=>{sx=e.touches[0].clientX; drag=true; inner.style.transition='none';},{passive:true});
-  el.addEventListener('touchmove', e=>{
-    if(!drag)return; cx=e.touches[0].clientX-sx;
-    inner.style.transform=`translateX(${Math.max(-thresh*1.6,Math.min(thresh*1.6,cx))}px)`;
-  },{passive:true});
-  el.addEventListener('touchend', ()=>{
-    drag=false; inner.style.transition='transform .28s';
-    if(cx>thresh){inner.style.transform='translateX(110%)';setTimeout(()=>onRight(),220);}
-    else if(cx<-thresh){inner.style.transform='translateX(-110%)';setTimeout(()=>onLeft(),220);}
-    else inner.style.transform='translateX(0)';
-    cx=0;
-  });
-}
+        function renderCharts() {
+            renderPractitionerChart();
+            renderDayOfWeekChart();
+        }
 
-// ──────────────────────────────────────────────
-//  MODALS
-// ──────────────────────────────────────────────
-function openM(id) {
-  closeFAB();
-  document.getElementById(id).classList.add('open');
-  if(id==='addModal'){
-    document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
-    calcPrev();
-  }
-  if(id==='payModal') initPayModal();
-  document.getElementById(id).addEventListener('click',function h(e){if(e.target===this){closeM(id);this.removeEventListener('click',h);}});
-}
-function closeM(id){document.getElementById(id).classList.remove('open');}
+        function renderPractitionerChart() {
+            const stats = getPractitionerStats();
+            const labels = Object.keys(stats);
+            const data = Object.values(stats).map(s => s.totalRevenue);
+            const colors = ['#f472b6', '#60a5fa', '#a78bfa', '#34d399', '#fbbf24'];
+            
+            const ctx = document.getElementById('practitionerChart').getContext('2d');
+            
+            if (practitionerChart) practitionerChart.destroy();
+            
+            practitionerChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data,
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
 
-// ──────────────────────────────────────────────
-//  FAB
-// ──────────────────────────────────────────────
-function toggleFAB(){
-  fabOpen=!fabOpen;
-  document.getElementById('fabMenu').classList.toggle('open',fabOpen);
-  document.getElementById('fabMain').classList.toggle('open',fabOpen);
-}
-function closeFAB(){
-  fabOpen=false;
-  document.getElementById('fabMenu').classList.remove('open');
-  document.getElementById('fabMain').classList.remove('open');
-}
-document.addEventListener('click', e=>{
-  if(!e.target.closest('.fab-c')) closeFAB();
-});
+        function renderDayOfWeekChart() {
+            const stats = getDayOfWeekStats();
+            
+            const ctx = document.getElementById('dayOfWeekChart').getContext('2d');
+            
+            if (dayOfWeekChart) dayOfWeekChart.destroy();
+            
+            dayOfWeekChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: stats.labels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: stats.data,
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#818cf8',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
 
-// ──────────────────────────────────────────────
-//  TOAST
-// ──────────────────────────────────────────────
-function toast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2600);
-}
+        function setPractitionerView(mode) {
+            practitionerViewMode = mode;
+            document.getElementById('btnMonthView').className = `px-3 py-1 rounded-full text-xs transition ${mode === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'}`;
+            document.getElementById('btnAllView').className = `px-3 py-1 rounded-full text-xs transition ${mode === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'}`;
+            renderPractitionerChart();
+        }
 
-// ──────────────────────────────────────────────
-//  DATALIST
-// ──────────────────────────────────────────────
-function updatePracList() {
-  const names=[...new Set(sessions.map(s=>s.practitioner))];
-  document.getElementById('pracList').innerHTML=names.map(n=>`<option value="${n}">`).join('');
-}
+        function renderPayouts() {
+            const stats = getPractitionerStats();
+            const container = document.getElementById('payoutList');
+            const countEl = document.getElementById('payoutCount');
+            
+            const activePractitioners = Object.entries(stats).filter(([_, s]) => s.totalRevenue > 0);
+            countEl.textContent = `${activePractitioners.length} active`;
+            
+            container.innerHTML = activePractitioners.map(([name, stat]) => {
+                const isOverdue = stat.pending > 0 && sessions.some(s => 
+                    s.practitioner === name && 
+                    s.status === 'Pending' && 
+                    new Date(s.date) < new Date(Date.now() - 7 * 86400000)
+                );
+                
+                return `
+                <div class="bg-slate-800/50 rounded-lg p-3 ${isOverdue ? 'overdue' : ''}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-medium text-sm">${name}</p>
+                            <p class="text-xs text-slate-400">${stat.sessions} sessions</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-sm">$${stat.totalRevenue.toLocaleString()}</p>
+                            ${isOverdue ? '<span class="text-xs text-red-400 font-medium">Overdue</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-xs mb-3">
+                        <span class="text-amber-400">Pending: $${stat.pending}</span>
+                        <span class="text-emerald-400">Paid: $${stat.paid}</span>
+                    </div>
+                    ${stat.pending > 0 ? `
+                    <div class="flex gap-2">
+                        <button onclick="markPractitionerPaid('${name}')" class="flex-1 py-2 bg-emerald-600/20 text-emerald-400 rounded text-xs font-medium hover:bg-emerald-600/30 transition">
+                            Mark Paid
+                        </button>
+                        <button onclick="generateReceipt('${name}')" class="px-3 py-2 bg-slate-700 rounded text-xs hover:bg-slate-600 transition">
+                            Receipt
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+                `;
+            }).join('');
+        }
 
-// ──────────────────────────────────────────────
-//  INIT
-// ──────────────────────────────────────────────
-load();
-render();
-</script>
-</body>
-</html>
+        function renderUnpaidSessions() {
+            const unpaid = getMonthSessions().filter(s => s.status === 'Pending');
+            const container = document.getElementById('unpaidList');
+            
+            if (unpaid.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No pending payments</p>';
+                return;
+            }
+            
+            container.innerHTML = unpaid.map(s => {
+                const isOverdue = new Date(s.date) < new Date(Date.now() - 7 * 86400000);
+                return `
+                <div class="swipe-item relative bg-slate-800/50 rounded-lg p-3 ${isOverdue ? 'overdue' : ''}" 
+                     ontouchstart="handleSwipeStart(event, this)" 
+                     ontouchmove="handleSwipeMove(event, this)" 
+                     ontouchend="handleSwipeEnd(event, this)"
+                     data-id="${s.id}">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium">${s.sessionName}</p>
+                            <p class="text-xs text-slate-400">${s.practitioner} • ${formatDate(s.date)}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-amber-400">$${s.practitionerRevenue}</p>
+                            <span class="text-xs px-2 py-1 rounded-full status-pending">Pending</span>
+                        </div>
+                    </div>
+                    <div class="swipe-actions">
+                        <button onclick="markSessionPaid('${s.id}')" class="bg-emerald-600 text-white px-4 py-2 rounded-l-lg text-xs font-medium h-full">
+                            Pay
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
 
+        function renderPerformance() {
+            const stats = getPerformanceStats();
+            const container = document.getElementById('performanceStats');
+            
+            if (!stats) {
+                container.innerHTML = '<p class="text-sm text-slate-500">No data available</p>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
+                    <span class="text-sm text-slate-400">Avg Revenue/Session</span>
+                    <span class="font-bold text-indigo-400">$${stats.avgRevenue.toFixed(0)}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
+                    <span class="text-sm text-slate-400">Best Performing Type</span>
+                    <span class="font-bold text-emerald-400">${stats.bestType[0]} ($${stats.bestType[1].revenue.toFixed(0)})</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
+                    <span class="text-sm text-slate-400">Avg Attendance</span>
+                    <span class="font-bold text-purple-400">${stats.avgAttendance.toFixed(1)} people</span>
+                </div>
+                <div class="mt-2">
+                    <p class="text-xs text-slate-500 mb-2">Revenue by Type</p>
+                    <div class="space-y-2">
+                        ${Object.entries(stats.typeStats).map(([type, data]) => `
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs w-20">${type}</span>
+                                <div class="flex-1 bg-slate-800 rounded-full h-2 overflow-hidden">
+                                    <div class="h-full bg-indigo-500 rounded-full" style="width: ${(data.revenue / stats.bestType[1].revenue * 100)}%"></div>
+                                </div>
+                                <span class="text-xs w-12 text-right">$${data.revenue.toFixed(0)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSessionsList() {
+            const recent = getMonthSessions().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+            const container = document.getElementById('sessionsList');
+            
+            container.innerHTML = recent.map(s => `
+                <div class="swipe-item relative bg-slate-800/30 rounded-lg p-3 type-${s.type.toLowerCase().replace(' ', '-')}" 
+                     onclick="showSessionDetail('${s.id}')"
+                     ontouchstart="handleSwipeStart(event, this)" 
+                     ontouchmove="handleSwipeMove(event, this)" 
+                     ontouchend="handleSwipeEnd(event, this)"
+                     data-id="${s.id}">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium">${s.sessionName}</p>
+                            <p class="text-xs text-slate-400">${s.practitioner} • ${s.attendees} attendees</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-sm">$${s.totalRevenue}</p>
+                            <span class="text-xs px-2 py-0.5 rounded-full ${s.status === 'Paid' ? 'status-paid' : 'status-pending'}">${s.status}</span>
+                        </div>
+                    </div>
+                    <div class="swipe-actions">
+                        <button onclick="event.stopPropagation(); editSession('${s.id}')" class="bg-indigo-600 text-white px-3 py-2 rounded-l-lg text-xs h-full">
+                            Edit
+                        </button>
+                        <button onclick="event.stopPropagation(); deleteSession('${s.id}')" class="bg-red-600 text-white px-3 py-2 text-xs h-full">
+                            Del
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPackRevenue() {
+            const metrics = calculateMetrics();
+            document.getElementById('packRevenue').textContent = `$${metrics.packRevenue.toLocaleString()}`;
+        }
+
+        // Swipe Handling
+        let swipeStartX = 0;
+        let swipeCurrentX = 0;
+        let swipedElement = null;
+
+        function handleSwipeStart(e, element) {
+            swipeStartX = e.touches[0].clientX;
+            element.classList.remove('swiped-right');
+            swipedElement = element;
+        }
+
+        function handleSwipeMove(e, element) {
+            swipeCurrentX = e.touches[0].clientX;
+            const diff = swipeStartX - swipeCurrentX;
+            
+            if (diff > 50) {
+                element.classList.add('swiped-right');
+            } else {
+                element.classList.remove('swiped-right');
+            }
+        }
+
+        function handleSwipeEnd(e, element) {
+            const diff = swipeStartX - swipeCurrentX;
+            if (diff < 50) {
+                element.classList.remove('swiped-right');
+            }
+        }
+
+        // Actions
+        function markSessionPaid(id) {
+            const session = sessions.find(s => s.id === id);
+            if (session) {
+                session.status = 'Paid';
+                saveData();
+                renderAll();
+                showToast('Payment marked as paid');
+            }
+        }
+
+        function markPractitionerPaid(name) {
+            const pending = getMonthSessions().filter(s => s.practitioner === name && s.status === 'Pending');
+            pending.forEach(s => s.status = 'Paid');
+            saveData();
+            renderAll();
+            showToast(`All payments to ${name} marked as paid`);
+        }
+
+        function markAllPaid() {
+            const pending = getMonthSessions().filter(s => s.status === 'Pending');
+            pending.forEach(s => s.status = 'Paid');
+            saveData();
+            renderAll();
+            showToast('All pending payments marked as paid');
+        }
+
+        function generateReceipt(practitioner) {
+            const practitionerSessions = getMonthSessions()
+                .filter(s => s.practitioner === practitioner && s.status === 'Pending');
+            
+            if (practitionerSessions.length === 0) {
+                showToast('No pending payments for this practitioner');
+                return;
+            }
+            
+            const total = practitionerSessions.reduce((sum, s) => sum + s.practitionerRevenue, 0);
+            
+            currentReceipt = {
+                practitioner,
+                date: new Date().toLocaleDateString(),
+                method: 'Cash',
+                sessions: practitionerSessions,
+                total
+            };
+            
+            document.getElementById('receiptPractitioner').textContent = practitioner;
+            document.getElementById('receiptDate').textContent = currentReceipt.date;
+            document.getElementById('receiptMethod').textContent = 'Cash';
+            document.getElementById('receiptTotal').textContent = `$${total.toFixed(2)}`;
+            
+            document.getElementById('receiptSessions').innerHTML = practitionerSessions.map(s => `
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-600">${s.sessionName} (${formatDate(s.date)})</span>
+                    <span class="font-semibold">$${s.practitionerRevenue}</span>
+                </div>
+            `).join('');
+            
+            openModal('receiptModal');
+            
+            // Auto mark as paid when receipt generated
+            practitionerSessions.forEach(s => s.status = 'Paid');
+            saveData();
+            renderAll();
+        }
+
+        function downloadReceipt() {
+            window.print();
+        }
+
+        // Session Form Logic
+        function calculateSessionRevenue() {
+            const form = document.getElementById('sessionForm');
+            const attendees = parseInt(form.attendees.value) || 0;
+            const price = parseFloat(form.pricePerPerson.value) || 0;
+            const studioComm = parseFloat(form.studioCommission.value) || 0;
+            
+            const total = attendees * price;
+            const studioRev = total * (studioComm / 100);
+            const practitionerRev = total - studioRev;
+            
+            form.totalRevenue.value = total.toFixed(2);
+            form.studioRevenue.value = studioRev.toFixed(2);
+            form.practitionerRevenue.value = practitionerRev.toFixed(2);
+        }
+
+        function saveSession(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            // Validation
+            const attendees = parseInt(formData.get('attendees'));
+            const price = parseFloat(formData.get('pricePerPerson'));
+            const total = parseFloat(formData.get('totalRevenue'));
+            const studioRev = parseFloat(formData.get('studioRevenue'));
+            const practitionerRev = parseFloat(formData.get('practitionerRevenue'));
+            
+            if (attendees * price !== total) {
+                showValidationError('Revenue calculation mismatch');
+                return;
+            }
+            
+            if (Math.abs(studioRev + practitionerRev - total) > 0.01) {
+                showValidationError('Split calculation error');
+                return;
+            }
+            
+            const session = {
+                id: Date.now().toString(),
+                date: formData.get('date'),
+                sessionName: formData.get('sessionName'),
+                practitioner: formData.get('practitioner'),
+                type: formData.get('type'),
+                attendees,
+                pricePerPerson: price,
+                totalRevenue: total,
+                studioRevenue: studioRev,
+                practitionerRevenue: practitionerRev,
+                studioCommission: parseFloat(formData.get('studioCommission')),
+                practitionerCommission: 100 - parseFloat(formData.get('studioCommission')),
+                payoutTo: 'Practitioner',
+                status: formData.get('status') ? 'Paid' : 'Pending',
+                pack: formData.get('pack') === 'on',
+                month: formData.get('date').slice(0, 7)
+            };
+            
+            sessions.push(session);
+            saveData();
+            closeModal('sessionModal');
+            form.reset();
+            document.querySelector('input[name="date"]').valueAsDate = new Date();
+            renderAll();
+            showToast('Session saved successfully');
+        }
+
+        function showValidationError(msg) {
+            const errEl = document.getElementById('validationErrors');
+            errEl.textContent = msg;
+            errEl.classList.remove('hidden');
+            setTimeout(() => errEl.classList.add('hidden'), 3000);
+        }
+
+        function editSession(id) {
+            // Implementation for editing
+            showToast('Edit feature: Delete and recreate session');
+        }
+
+        function deleteSession(id) {
+            if (confirm('Delete this session?')) {
+                sessions = sessions.filter(s => s.id !== id);
+                saveData();
+                renderAll();
+                showToast('Session deleted');
+            }
+        }
+
+        function showSessionDetail(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+            
+            const content = document.getElementById('detailContent');
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-indigo-600/20 flex items-center justify-center text-2xl">
+                            ${session.type === 'Yoga' ? '🧘' : session.type === 'Breathwork' ? '🌬️' : '🎵'}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">${session.sessionName}</h3>
+                            <p class="text-sm text-slate-400">${formatDate(session.date)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400">Practitioner</p>
+                            <p class="font-medium">${session.practitioner}</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400">Type</p>
+                            <p class="font-medium">${session.type}</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400">Attendees</p>
+                            <p class="font-medium">${session.attendees} people</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400">Price/Person</p>
+                            <p class="font-medium">$${session.pricePerPerson}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-800/
